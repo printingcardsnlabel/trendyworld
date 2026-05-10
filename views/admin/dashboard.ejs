@@ -1,0 +1,116 @@
+<%- include('../partials/headr') %>
+
+<div class="min-h-screen bg-gray-50 py-10">
+    <div class="container mx-auto px-6">
+        
+        <!-- Top Bar -->
+        <div class="flex flex-col md:flex-row md:items-center justify-between mb-10 gap-4">
+            <div>
+                <h1 class="text-3xl font-extrabold text-gray-900">Admin Dashboard</h1>
+                <p class="text-gray-500">Manage your store products and inventory</p>
+            </div>
+            <a href="/add" class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-bold flex items-center justify-center gap-2 transition shadow-lg">
+                <i class="fa-solid fa-plus"></i> Add New Product
+            </a>
+        </div>
+
+        <!-- Product Table -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead class="bg-gray-800 text-white">
+                        <tr>
+                            <th class="px-6 py-4 text-sm font-semibold uppercase">Image</th>
+                            <th class="px-6 py-4 text-sm font-semibold uppercase">Product Name</th>
+                            <th class="px-6 py-4 text-sm font-semibold uppercase">Category</th>
+                            <th class="px-6 py-4 text-sm font-semibold uppercase">Price</th>
+                            <th class="px-6 py-4 text-sm font-semibold uppercase text-center">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100">
+                        <% products.forEach(product => { %>
+                        <tr class="hover:bg-gray-50 transition">
+                            <td class="px-6 py-4">
+                                <img src="<%= product.imgUrl %>" class="w-12 h-12 object-cover rounded-md border">
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="font-bold text-gray-800"><%= product.title %></div>
+                                <div class="text-xs text-gray-400">ID: <%= product._id %></div>
+                            </td>
+                            <td class="px-6 py-4">
+                                <span class="px-3 py-1 bg-blue-50 text-blue-600 text-xs font-bold rounded-full border border-blue-100">
+                                    <%= product.category %>
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 font-bold text-gray-900">
+                                ৳<%= product.price %>
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="flex items-center justify-center gap-3">
+                                    <!-- View Item -->
+                                    <a href="/product/<%= product._id %>" class="p-2 text-blue-500 hover:bg-blue-50 rounded-lg transition" title="View">
+                                        <i class="fa-regular fa-eye"></i>
+                                    </a>
+                                    <!-- Delete Item -->
+                                    <button onclick="confirmDelete('/admin/delete/<%= product._id %>')" 
+   class="p-2 text-red-500 hover:bg-red-50 rounded-lg transition" title="Delete">
+    <i class="fa-regular fa-trash-can"></i>
+</button>
+                                </div>
+                            </td>
+                        </tr>
+                        <% }) %>
+
+                        <% if(products.length === 0) { %>
+                            <tr>
+                                <td colspan="5" class="px-6 py-20 text-center text-gray-400">
+                                    <i class="fa-solid fa-box-open text-4xl mb-3 block"></i>
+                                    No products found in database.
+                                </td>
+                            </tr>
+                        <% } %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Quick Stats Footer -->
+        <div class="mt-8 grid grid-cols-1 sm:grid-cols-3 gap-6">
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                <p class="text-sm text-gray-500 mb-1">Total Products</p>
+                <h3 class="text-2xl font-bold text-gray-900"><%= products.length %></h3>
+            </div>
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                <p class="text-sm text-gray-500 mb-1">Store Status</p>
+                <h3 class="text-2xl font-bold text-green-600">Active</h3>
+            </div>
+            <a href="/admin/orders" class="bg-orange-500 p-6 rounded-xl 
+            shadow-sm border border-gray-100">
+               
+                <h1 class="text-2xl font-bold text-white">See Orders</h1>
+            </a>
+        </div>
+    </div>
+</div>
+<script>
+    function confirmDelete(deleteUrl) {
+        Swal.fire({
+            title: 'আপনি কি নিশ্চিত?',
+            text: "একবার ডিলিট করলে এটি আর ফিরে পাওয়া যাবে না!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'হ্যাঁ, ডিলিট করুন!',
+            cancelButtonText: 'বাতিল করুন',
+            reverseButtons: true
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // ইউজার কনফার্ম করলে ডিলিট রাউটে রিডাইরেক্ট করবে
+                window.location.href = deleteUrl;
+            }
+        })
+    }
+</script>
+
+<%- include('../partials/footer') %>

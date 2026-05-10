@@ -1,0 +1,141 @@
+<%- include('../partials/headr') %>
+
+<!-- SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<div class="min-h-screen bg-slate-50 py-12">
+    <div class="container mx-auto px-4 max-w-5xl">
+        
+        <!-- Header -->
+        <div class="flex items-center justify-between mb-8">
+            <div>
+                <h1 class="text-4xl font-black text-slate-900 tracking-tight">Orders Management</h1>
+                <p class="text-slate-500 font-medium">Monitor and process your customer orders</p>
+            </div>
+            <div class="bg-white px-4 py-2 rounded-full shadow-sm border font-bold text-slate-700">
+                Total: <%= orders.length %>
+            </div>
+        </div>
+
+        <!-- Scrollable Order Container (Max height for ~3 orders) -->
+        <div class="overflow-y-auto pr-2 custom-scrollbar" style="max-height: 750px;">
+            <div class="grid grid-cols-1 gap-6">
+                <% if(orders.length > 0) { %>
+                    <% orders.forEach(order => { %>
+                        <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 flex flex-col md:flex-row items-center justify-between gap-6 hover:shadow-md transition duration-300">
+                            
+                            <!-- Order Info -->
+                            <div class="flex-1 w-full">
+                                <div class="flex items-center gap-3 mb-3">
+                                    <span class="text-[10px] font-black uppercase tracking-widest bg-slate-100 text-slate-500 px-3 py-1 rounded-full">
+                                        <%= order.createdAt.toLocaleDateString() %>
+                                    </span>
+                                    <span class="text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full <%= order.status === 'Pending' ? 'bg-amber-100 text-amber-600' : 'bg-emerald-100 text-emerald-600' %>">
+                                        <%= order.status %>
+                                    </span>
+                                </div>
+                                <h3 class="text-xl font-bold text-slate-800"><%= order.customerInfo.name %></h3>
+                                <p class="text-slate-500 text-sm font-medium"><i class="fa-solid fa-phone mr-1 text-xs"></i> <%= order.customerInfo.phone %></p>
+                                <p class="text-slate-400 text-xs mt-1 italic"><i class="fa-solid fa-location-dot mr-1"></i> <%= order.customerInfo.address %></p>
+                            </div>
+
+                            <!-- Ordered Items -->
+                            <div class="flex-1 w-full bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                                <p class="text-[10px] font-bold text-slate-400 uppercase mb-2">Items List</p>
+                                <div class="space-y-1">
+                                    <% order.items.forEach(item => { %>
+                                        <div class="flex justify-between text-sm">
+                                            <span class="font-bold text-slate-700"><%= item.title %> <span class="text-slate-400">x<%= item.quantity %></span></span>
+                                            <span class="text-slate-500">৳<%= item.price %></span>
+                                        </div>
+                                    <% }) %>
+                                </div>
+                                <div class="mt-3 pt-2 border-t border-slate-200 flex justify-between items-center text-red-600 font-black">
+                                    <span>Total Amount:</span>
+                                    <span>৳<%= order.totalAmount %></span>
+                                </div>
+                            </div>
+
+                            <!-- Action Buttons -->
+                            <div class="flex md:flex-col gap-3 w-full md:w-auto">
+                                <% if(order.status === 'Pending') { %>
+                                    <button onclick="updateStatus('/admin/orders/confirm/<%= order._id %>', 'confirm')" 
+                                        class="flex-1 md:w-32 bg-emerald-500 hover:bg-emerald-600 text-white py-3 rounded-2xl font-bold text-xs uppercase tracking-wider transition-all shadow-sm active:scale-95">
+                                        Confirm
+                                    </button>
+                                <% } %>
+                                <button onclick="updateStatus('/admin/orders/delete/<%= order._id %>', 'delete')" 
+                                    class="flex-1 md:w-32 bg-slate-900 hover:bg-red-600 text-white py-3 rounded-2xl font-bold text-xs uppercase tracking-wider transition-all shadow-sm active:scale-95">
+                                    Delete
+                                </button>
+                            </div>
+                        </div>
+                    <% }) %>
+                <% } else { %>
+                    <div class="bg-white rounded-3xl p-20 text-center border border-dashed border-slate-300">
+                        <i class="fa-solid fa-box-open text-6xl text-slate-200 mb-4"></i>
+                        <p class="text-slate-400 font-bold">No orders available yet.</p>
+                    </div>
+                <% } %>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Custom Scrollbar for the Container */
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 10px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+        background: #94a3b8;
+    }
+</style>
+
+<script>
+    function updateStatus(url, type) {
+        const config = {
+            confirm: {
+                title: 'অর্ডার কনফার্ম করবেন?',
+                text: "এটি কনফার্ম করলে অর্ডারের স্ট্যাটাস আপডেট হবে!",
+                icon: 'question',
+                confirmButtonText: 'হ্যাঁ, কনফার্ম করুন',
+                confirmButtonColor: '#10b981'
+            },
+            delete: {
+                title: 'অর্ডারটি ডিলিট করবেন?',
+                text: "ডিলিট করলে তথ্য আর ফিরে পাওয়া যাবে না!",
+                icon: 'warning',
+                confirmButtonText: 'হ্যাঁ, ডিলিট করুন',
+                confirmButtonColor: '#ef4444'
+            }
+        };
+
+        const current = config[type];
+
+        Swal.fire({
+            title: current.title,
+            text: current.text,
+            icon: current.icon,
+            showCancelButton: true,
+            confirmButtonColor: current.confirmButtonColor,
+            cancelButtonColor: '#64748b',
+            confirmButtonText: current.confirmButtonText,
+            cancelButtonText: 'বাতিল',
+            reverseButtons: true
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.location.href = url;
+            }
+        })
+    }
+</script>
+
+<%- include('../partials/footer') %>

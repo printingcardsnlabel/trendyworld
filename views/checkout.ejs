@@ -1,0 +1,111 @@
+<%- include('partials/headr') %>
+
+<div class="container mx-auto px-6 py-12">
+    <div class="max-w-4xl mx-auto bg-white p-8 rounded-2xl shadow-lg border border-gray-100">
+        <h2 class="text-3xl font-bold mb-8 text-gray-800 border-b pb-4">Checkout Details</h2>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
+            <!-- Shipping Form -->
+            <form id="order-form" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700">Full Name</label>
+                    <input type="text" id="name" required class="w-full mt-1 px-4 py-3 border rounded-lg outline-none focus:ring-2 focus:ring-black">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700">Phone Number</label>
+                    <input type="tel" id="phone" required class="w-full mt-1 px-4 py-3 border rounded-lg outline-none focus:ring-2 focus:ring-black">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700">Full Address</label>
+                    <textarea id="address" required rows="3" class="w-full mt-1 px-4 py-3 border rounded-lg outline-none focus:ring-2 focus:ring-black"></textarea>
+                </div>
+                <button type="submit" class="w-full bg-black text-white py-4 rounded-lg font-bold uppercase tracking-widest hover:bg-gray-800 transition shadow-lg">
+                    Place Order
+                </button>
+            </form>
+
+            <!-- Order Preview -->
+            <div class="bg-gray-50 p-6 rounded-xl border">
+                <h4 class="text-lg font-bold mb-4">Order Summary</h4>
+                <div id="checkout-items" class="space-y-3 mb-4">
+                    <!-- Items will appear here -->
+                </div>
+                <div class="border-t pt-4 text-xl font-black text-red-600 flex justify-between">
+                    <span>Total Bill:</span>
+                    <span id="checkout-total">৳0</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    function loadCheckout() {
+        const cart = JSON.parse(localStorage.getItem('cart')) || [];
+        const container = document.getElementById('checkout-items');
+        const totalEl = document.getElementById('checkout-total');
+        
+        if (cart.length === 0) {
+            window.location.href = '/cart';
+            return;
+        }
+
+        let total = 0;
+        container.innerHTML = cart.map(item => {
+            total += parseFloat(item.price) * item.quantity;
+            return `
+                <div class="flex justify-between text-sm border-b pb-2 italic text-gray-600">
+                    <span>${item.title} x ${item.quantity}</span>
+                    <span>৳${(item.price * item.quantity).toFixed(2)}</span>
+                </div>
+            `;
+        }).join('');
+        
+        totalEl.innerText = '৳' + total.toFixed(2);
+    }
+
+    document.getElementById('order-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const cart = JSON.parse(localStorage.getItem('cart')) || [];
+        const total = cart.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+        
+        const orderData = {
+            name: document.getElementById('name').value,
+            phone: document.getElementById('phone').value,
+            address: document.getElementById('address').value,
+            items: cart,
+            totalAmount: total
+        };
+
+        try {
+            const response = await fetch('/place-order', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(orderData)
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Order Placed!',
+                    text: 'আপনার অর্ডারটি সফলভাবে গ্রহণ করা হয়েছে।',
+                    confirmButtonText: 'OK'
+                }).then(() => {
+                    localStorage.removeItem('cart'); // কার্ট খালি করা
+                    window.dispatchEvent(new CustomEvent('cartUpdated')); // ন্যাভবার আপডেট
+                    window.location.href = '/'; // হোমপেজে পাঠানো
+                });
+            }
+        } catch (error) {
+            Swal.fire('Error', 'কিছু একটা সমস্যা হয়েছে!', 'error');
+        }
+    });
+
+    document.addEventListener('DOMContentLoaded', loadCheckout);
+</script>
+
+<%- include('partials/footer') %>

@@ -1,0 +1,133 @@
+<%- include('partials/headr') %>
+
+<div class="container mx-auto px-4 py-12 min-h-screen">
+    <h1 class="text-3xl font-extrabold mb-10 text-gray-900 border-b pb-4">Your Shopping Cart</h1>
+
+    <div class="flex flex-col lg:flex-row gap-8">
+        <!-- Left: Cart Items -->
+        <div class="lg:w-2/3">
+            <div id="cart-wrapper" class="space-y-6">
+                <!-- Items will be injected here by JS -->
+                <div id="loading-msg" class="text-center py-10 text-gray-500 text-lg">Loading your cart...</div>
+            </div>
+            
+            <div id="empty-cart-ui" class="hidden text-center py-20">
+                <i class="fa-solid fa-cart-shopping text-6xl text-gray-200 mb-4"></i>
+                <p class="text-xl text-gray-500 mb-6">Your cart is currently empty!</p>
+                <a href="/" class="inline-block bg-black text-white px-8 py-3 rounded-full hover:bg-gray-800 transition">Start Shopping</a>
+            </div>
+        </div>
+
+        <!-- Right: Order Summary -->
+        <div class="lg:w-1/3">
+            <div class="bg-white p-8 rounded-xl shadow-sm border border-gray-100 sticky top-24">
+                <h3 class="text-xl font-bold mb-6 text-gray-800">Order Summary</h3>
+                <div class="space-y-4 text-gray-600">
+                    <div class="flex justify-between">
+                        <span>Subtotal</span>
+                        <span id="subtotal">৳0</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span>Shipping</span>
+                        <span class="text-green-600 font-medium">Free</span>
+                    </div>
+                    <div class="border-t pt-4 mt-4 flex justify-between text-2xl font-black text-red-600">
+                        <span>Total</span>
+                        <span id="final-total">৳0</span>
+                    </div>
+                </div>
+                <button onclick="location.href='/checkout'" class="w-full bg-red-600 text-white py-4 mt-8 rounded-lg hover:bg-red-700 transition font-bold uppercase tracking-widest">
+                    Checkout Now
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // কার্ট থেকে ডাটা নিয়ে এসে পেজে দেখানো
+    function renderCart() {
+        const cart = JSON.parse(localStorage.getItem('cart')) || [];
+        const wrapper = document.getElementById('cart-wrapper');
+        const emptyUI = document.getElementById('empty-cart-ui');
+        const subtotalEl = document.getElementById('subtotal');
+        const totalEl = document.getElementById('final-total');
+
+        if (cart.length === 0) {
+            wrapper.innerHTML = '';
+            emptyUI.classList.remove('hidden');
+            subtotalEl.innerText = '৳0';
+            totalEl.innerText = '৳0';
+            return;
+        }
+
+        emptyUI.classList.add('hidden');
+        let cartHTML = '';
+        let totalPrice = 0;
+
+        cart.forEach((item, index) => {
+            const itemPrice = parseFloat(item.price.replace(/[^0-9.-]+/g, "")) || 0;
+            const itemTotal = itemPrice * item.quantity;
+            totalPrice += itemTotal;
+
+            cartHTML += `
+                <div class="flex flex-col md:flex-row items-center justify-between bg-white p-6 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition">
+                    <div class="flex items-center gap-6 w-full md:w-auto">
+                        <img src="${item.img}" class="w-24 h-24 object-cover rounded-lg shadow-sm">
+                        <div>
+                            <h4 class="text-lg font-bold text-gray-900">${item.title}</h4>
+                            <p class="text-red-600 font-semibold mb-3">৳${itemPrice}</p>
+                            
+                            <!-- Quantity Controls -->
+                            <div class="flex items-center border w-fit rounded-lg overflow-hidden bg-gray-50">
+                                <button onclick="updateQty(${index}, -1)" class="px-3 py-1 hover:bg-gray-200 transition font-bold text-gray-600">−</button>
+                                <span class="px-4 py-1 bg-white font-bold text-gray-800 border-x">${item.quantity}</span>
+                                <button onclick="updateQty(${index}, 1)" class="px-3 py-1 hover:bg-gray-200 transition font-bold text-gray-600">+</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-row md:flex-col items-center md:items-end justify-between w-full md:w-auto mt-6 md:mt-0 pt-4 md:pt-0 border-t md:border-0">
+                        <p class="text-xl font-black text-gray-800">৳${itemTotal.toFixed(2)}</p>
+                        <button onclick="deleteItem(${index})" class="text-sm text-gray-400 hover:text-red-600 transition flex items-center gap-1">
+                            <i class="fa-regular fa-trash-can"></i> Remove
+                        </button>
+                    </div>
+                </div>
+            `;
+        });
+
+        wrapper.innerHTML = cartHTML;
+        subtotalEl.innerText = '৳' + totalPrice.toFixed(2);
+        totalEl.innerText = '৳' + totalPrice.toFixed(2);
+    }
+
+    // Quantity বাড়ানো বা কমানো
+    function updateQty(index, change) {
+        let cart = JSON.parse(localStorage.getItem('cart')) || [];
+        if (cart[index]) {
+            cart[index].quantity += change;
+            if (cart[index].quantity < 1) cart[index].quantity = 1;
+            
+            localStorage.setItem('cart', JSON.stringify(cart));
+            renderCart();
+            // Navbar আপডেট ইভেন্ট
+            window.dispatchEvent(new CustomEvent('cartUpdated'));
+        }
+    }
+
+    // আইটেম রিমুভ করা
+    function deleteItem(index) {
+        let cart = JSON.parse(localStorage.getItem('cart')) || [];
+        cart.splice(index, 1);
+        localStorage.setItem('cart', JSON.stringify(cart));
+        renderCart();
+        // Navbar আপডেট ইভেন্ট
+        window.dispatchEvent(new CustomEvent('cartUpdated'));
+    }
+
+    // পেজ লোড হলে রান হবে
+    document.addEventListener('DOMContentLoaded', renderCart);
+</script>
+
+<%- include('partials/footer') %>

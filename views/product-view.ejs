@@ -1,0 +1,87 @@
+<%- include('partials/headr') %>
+
+<div class="container mx-auto px-6 py-12 min-h-screen">
+    <!-- Back Button -->
+    <a href="/" class="text-gray-500 hover:text-black transition flex items-center gap-2 mb-8">
+        <i class="fa-solid fa-arrow-left"></i> Back to Shop
+    </a>
+
+    <div class="flex flex-col lg:flex-row gap-12">
+        <!-- Product Image -->
+        <div class="lg:w-1/2">
+            <div class="overflow-hidden rounded-xl bg-gray-50 shadow-sm border">
+                <img src="<%= product.imgUrl %>" alt="<%= product.title %>" class="w-full h-auto object-cover hover:scale-105 transition duration-500">
+            </div>
+        </div>
+
+        <!-- Product Details -->
+        <div class="lg:w-1/2">
+            <div class="space-y-6">
+                <!-- Category Badge -->
+                <span class="inline-block px-3 py-1 bg-orange-100 text-orange-600 text-xs font-bold uppercase tracking-widest rounded-full">
+                    <%= product.category %>
+                </span>
+
+                <h1 class="text-4xl font-extrabold text-gray-900 leading-tight">
+                    <%= product.title %>
+                </h1>
+
+                <div class="flex items-center gap-4">
+                    <p class="text-3xl font-black text-red-600">৳<%= product.price %></p>
+                    <span class="text-green-600 font-semibold text-sm bg-green-50 px-2 py-1 rounded">In Stock</span>
+                </div>
+
+                <div class="border-t border-b py-6 text-gray-600 leading-relaxed">
+                    <h4 class="text-sm font-bold text-gray-900 uppercase mb-2">Description</h4>
+                    <p><%= product.content %></p>
+                </div>
+
+                <!-- Add to Cart Action -->
+                <div class="flex flex-col sm:flex-row gap-4 pt-4">
+                    <button onclick="addToCart('<%= product._id %>', '<%= product.title %>', '<%= product.price %>', '<%= product.imgUrl %>')" 
+                        class="flex-1 bg-black text-white py-4 px-8 rounded-full font-bold uppercase tracking-widest hover:bg-gray-800 transition shadow-lg flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-cart-plus"></i> Add to Cart
+                    </button>
+                    
+                    <button class="p-4 border border-gray-200 rounded-full hover:bg-gray-50 transition">
+                        <i class="fa-regular fa-heart text-xl"></i>
+                    </button>
+                </div>
+
+                <!-- Features -->
+                <div class="grid grid-cols-2 gap-4 pt-8">
+                    <div class="flex items-center gap-3 text-sm text-gray-500">
+                        <i class="fa-solid fa-truck-fast text-gray-800"></i> Fast Delivery
+                    </div>
+                    <div class="flex items-center gap-3 text-sm text-gray-500">
+                        <i class="fa-solid fa-rotate-left text-gray-800"></i> 7 Days Return
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Footer -->
+<%- include('partials/footer') %>
+
+<!-- Script for Add to Cart -->
+<script>
+    function addToCart(id, title, price, img) {
+        let cart = JSON.parse(localStorage.getItem('cart')) || [];
+        const existingItem = cart.find(item => item.id === id);
+
+        if (existingItem) {
+            existingItem.quantity += 1;
+        } else {
+            cart.push({ id, title, price, img, quantity: 1 });
+        }
+
+        localStorage.setItem('cart', JSON.stringify(cart));
+        
+        // Custom Event for Live Navbar Update
+        window.dispatchEvent(new CustomEvent('cartUpdated'));
+
+        alert(`${title} added to cart!`);
+    }
+</script>

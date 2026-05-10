@@ -1,0 +1,80 @@
+
+<%- include('partials/headr') %>
+<body class="bg-white text-gray-900">
+
+ 
+
+    <!-- Hero Section -->
+    <section class="hero-gradient h-[80vh] flex items-center justify-center text-center text-white px-4">
+        <div class="max-w-3xl">
+            <h1 class="text-5xl md:text-7xl font-bold mb-6 tracking-tight">Redefine Your Style with Trendy World</h1>
+            <p class="text-lg md:text-xl text-gray-200 mb-8 font-light">Premium quality garments for those who value modern elegance.</p>
+            <a href="#shop" class="btn-red px-10 py-4 rounded-sm font-bold tracking-widest text-sm uppercase">
+                SHOP NOW
+            </a>
+        </div>
+    </section>
+
+    <!-- Product Categories -->
+    <section class="py-20 bg-gray-50">
+    <div class="container mx-auto px-6">
+        <h2 class="text-3xl font-bold mb-12 text-center text-gray-800">Shop by Category</h2>
+        
+        <div id="category-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <!-- ক্যাটাগরি কার্ডগুলো জাভাস্ক্রিপ্ট এর মাধ্যমে এখানে আসবে -->
+        </div>
+    </div>
+</section>
+
+<script>
+    // ১. ক্যাটাগরি ডাটা অ্যারে (এখানে আপনি আপনার পছন্দমতো লিঙ্ক যোগ করতে পারবেন)
+    const categories = [
+        {
+            name: "T-Shirts",
+            img: "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&q=80&w=1000",
+            link: "/category/t-shirts"
+        },
+        {
+            name: "Shirts",
+            img: "https://images.unsplash.com/photo-1596755094514-f87e34085b2c?auto=format&fit=crop&q=80&w=1000",
+            link: "/category/shirts"
+        },
+        {
+            name: "Panjabis",
+            img: "https://images.unsplash.com/photo-1515488764276-beab7607c1e6?auto=format&fit=crop&q=80&w=1000",
+            link: "/category/panjabis"
+        },
+        {
+            name: "Trousers",
+            img: "https://images.unsplash.com/photo-1624371414361-e6e8ea01c1e2?auto=format&fit=crop&q=80&w=1000",
+            link: "/category/trousers"
+        }
+    ];
+
+    const categoryContainer = document.getElementById('category-container');
+
+    // ২. অ্যারে লুপ করে HTML জেনারেট করা
+    categories.forEach(cat => {
+        categoryContainer.innerHTML += `
+            <a href="${cat.link}" class="category-card relative overflow-hidden group cursor-pointer h-80 block">
+                <img src="${cat.img}" alt="${cat.name}" 
+                    class="w-full h-full object-cover transition duration-700 group-hover:scale-110">
+                
+                <div class="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-all duration-300 flex items-center justify-center">
+                    <div class="text-center">
+                        <span class="text-white text-xl font-bold tracking-widest border-b-2 border-red-500 pb-1 uppercase transition-all duration-300 group-hover:px-4">
+                            ${cat.name}
+                        </span>
+                    </div>
+                </div>
+            </a>
+        `;
+    });
+</script>
+
+    <!-- Featured Products -->
+<%- include('partials/products') %>
+
+  
+<%- include('partials/footer') %>
+

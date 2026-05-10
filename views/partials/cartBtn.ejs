@@ -1,0 +1,24 @@
+<!-- cartBtn.ejs -->
+<button class="relative hover:text-red-400 transition" onclick="window.location.href='/cart'">
+    <i class="fa-solid fa-cart-shopping text-lg"></i>
+    <!-- এই ID টি খুবই গুরুত্বপূর্ণ -->
+    <span id="cart-count" class="absolute -top-2 -right-2 bg-red-600 text-[10px] rounded-full px-1.5 py-0.5 text-white">
+        0
+    </span>
+</button>
+<script>
+    // এই ফাংশনটি শুধু সংখ্যা আপডেট করার কাজ করবে
+    function refreshCartCount() {
+        const cart = JSON.parse(localStorage.getItem('cart')) || [];
+        const countElement = document.getElementById('cart-count');
+        if (countElement) {
+            countElement.innerText = cart.length;
+        }
+    }
+
+    // ১. পেজ লোড হলে একবার আপডেট হবে
+    window.addEventListener('DOMContentLoaded', refreshCartCount);
+
+    // ২. কাস্টম ইভেন্ট 'cartUpdated' শুনবে
+    window.addEventListener('cartUpdated', refreshCartCount);
+</script>

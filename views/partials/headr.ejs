@@ -1,0 +1,63 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trendy World | Premium Shop</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        html,body{
+            scroll-behavior: smooth;
+        }
+        .sticky-nav { backdrop-filter: blur(10px); background-color: rgba(18, 18, 18, 0.95); }
+        
+        .hero-gradient { 
+            background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&q=80&w=2070'); 
+            background-size: cover; 
+            background-position: center; 
+        }
+
+        /* Red Accent for Action Buttons */
+        .btn-red {
+            background-color: #E11D48; /* Premium Rose Red */
+            color: white;
+            transition: all 0.3s ease;
+        }
+        .btn-red:hover {
+            background-color: #BE123C;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(225, 29, 72, 0.3);
+        }
+        
+        .category-card:hover img { transform: scale(1.05); }
+    </style>
+</head>
+   <!-- Header -->
+    <header class="sticky top-0 z-50 sticky-nav border-b border-gray-800">
+        <nav class="container mx-auto px-6 py-4 flex items-center justify-between">
+            <div class="text-2xl font-bold tracking-tighter text-white">
+                TRENDY<span class="text-red-500">WORLD</span>
+            </div>
+            
+            <div class="hidden md:flex space-x-8 text-sm font-medium text-gray-300">
+                <a href="/" class="hover:text-red-400 transition">Home</a>
+                <a href="#" class="hover:text-red-400 transition">Men's Collection</a>
+                <a href="#" class="hover:text-red-400 transition">New Arrivals</a>
+                <a href="#" class="hover:text-red-400 transition">Best Sellers</a>
+                <a href="#" class="hover:text-red-400 transition">About Us</a>
+            </div>
+
+            <div class="flex items-center space-x-5 text-white">
+                <div class="relative hidden lg:block">
+                    <input type="text" placeholder="Search..." class="bg-gray-800 border-none rounded-full py-1 px-4 text-xs focus:ring-1 focus:ring-red-500 w-48 text-gray-200">
+                </div>
+               <%- include('./cartBtn') %>
+
+            </div>
+        </nav>
+    </header>

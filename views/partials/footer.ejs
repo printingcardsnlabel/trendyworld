@@ -1,0 +1,39 @@
+ <footer class="bg-[#121212] text-gray-400 pt-16 pb-8 border-t border-gray-800">
+        <div class="container mx-auto px-6 grid grid-cols-1 md:grid-cols-3 gap-12 mb-12">
+            <div>
+                <h3 class="text-white text-xl font-bold mb-6">TRENDY WORLD</h3>
+                <p class="text-sm">Exclusive ready-made garments for the style-conscious. Quality is our identity.</p>
+            </div>
+            <div>
+                <h4 class="text-white font-semibold mb-6">Support</h4>
+                <p class="text-sm">Email: contact@trendyworld.com</p>
+                <p class="text-sm">Location: Modhukhali New Market, Modhukhali Faridpur</p>
+            </div>
+            <div>
+                <h4 class="text-white font-semibold mb-6">Newsletter</h4>
+                <div class="flex">
+                    <input type="email" placeholder="Email" class="bg-gray-800 border-none rounded-l-sm py-2 px-4 w-full focus:ring-1 focus:ring-red-500">
+                    <button class="bg-red-600 text-white px-4 rounded-r-sm hover:bg-red-700 transition">Join</button>
+                </div>
+            </div>
+        </div>
+        <div class="text-center text-[10px] tracking-widest uppercase border-t border-gray-800 pt-8">
+            &copy; 2026 TRENDY WORLD COLLECTION. PREMIUM GARMENTS.
+        </div>
+    </footer>
+<script>
+    // কি-বোর্ড ইভেন্ট লিসেনার
+    window.addEventListener('keydown', function(event) {
+        // এখানে চেক করা হচ্ছে: Ctrl + Shift + A একসাথে প্রেস করা হয়েছে কি না
+        if (event.ctrlKey && event.shiftKey && event.key === 'A') {
+            
+            // কি-বোর্ড এর ডিফল্ট অ্যাকশন বন্ধ করা (ঐচ্ছিক)
+            event.preventDefault();
+
+            // অ্যাডমিন রাউটে নিয়ে যাওয়া
+            window.location.href = '/admin';
+        }
+    });
+</script>
+    </body>
+</html>
