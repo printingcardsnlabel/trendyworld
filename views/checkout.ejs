@@ -18,7 +18,7 @@
                     <label class="block text-sm font-semibold text-gray-700">Full Address</label>
                     <textarea id="address" required rows="3" class="w-full mt-1 px-4 py-3 border rounded-lg outline-none focus:ring-2 focus:ring-black"></textarea>
                 </div>
-                <button type="submit" class="w-full bg-black text-white py-4 rounded-lg font-bold uppercase tracking-widest hover:bg-gray-800 transition shadow-lg">
+                <button type="submit" class="w-full bg-black text-white py-4 rounded-lg font-bold uppercase tracking-widest hover:bg-gray-800 transition shadow-lg cursor-pointer">
                     Place Order
                 </button>
             </form>
@@ -51,7 +51,6 @@
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-    // Global variable final calculations pass korar jonno
     let globalFinalTotal = 0;
 
     function loadCheckout() {
@@ -69,7 +68,6 @@
         let subtotal = 0;
         
         container.innerHTML = cart.map(item => {
-            // FIXED: item.price soriye item.regularPrice read kora hocche
             const rawPrice = item.regularPrice ? item.regularPrice.toString() : "0";
             const itemPrice = parseFloat(rawPrice.replace(/[^0-9.-]+/g, "")) || 0;
             const itemTotal = itemPrice * item.quantity;
@@ -83,11 +81,9 @@
             `;
         }).join('');
         
-        // Shipping Calculations (Cart page er shathe sync rakha hoyeche)
         let shippingFee = subtotal >= 3500 ? 0 : 80;
         globalFinalTotal = subtotal + shippingFee;
 
-        // View integration update
         subtotalEl.innerText = '৳' + subtotal.toFixed(2);
         shippingEl.innerText = shippingFee === 0 ? 'Free' : '৳' + shippingFee.toFixed(2);
         totalEl.innerText = '৳' + globalFinalTotal.toFixed(2);
@@ -107,14 +103,14 @@
             phone: document.getElementById('phone').value,
             address: document.getElementById('address').value,
             items: cart,
-            totalAmount: globalFinalTotal // Synced with backend expectations
+            totalAmount: globalFinalTotal
         };
 
         try {
-            // Processing placeholder loading system loader setup
+            // Smooth processing loading spinner popup
             Swal.fire({
                 title: 'Processing Order...',
-                text: 'Please wait a moment.',
+                text: 'Please wait while we secure your booking.',
                 allowOutsideClick: false,
                 didOpen: () => { Swal.showLoading(); }
             });
@@ -130,17 +126,19 @@
             if (result.success) {
                 Swal.fire({
                     icon: 'success',
-                    title: 'Order Placed!',
-                    text: 'আপনার অর্ডারটি সফলভাবে গ্রহণ করা হয়েছে।',
-                    confirmButtonText: 'OK',
-                    confirmButtonColor: '#D2042D'
+                    title: 'Order Placed Successfully!',
+                    text: 'আপনার অর্ডারটি সফল হয়েছে। আইডিটি পরবর্তী ট্র্যাকিং এর জন্য সেভ রাখুন।',
+                    confirmButtonText: 'View Order ID',
+                    confirmButtonColor: '#000000'
                 }).then(() => {
-                    localStorage.removeItem('cart'); // কার্ট খালি করা
-                    window.dispatchEvent(new CustomEvent('cartUpdated')); // ন্যাভবার কাউন্টার আপডেট
-                    window.location.href = '/'; // হোমপেজে পাঠানো
+                    localStorage.removeItem('cart'); // Clears the cart memory immediately
+                    window.dispatchEvent(new CustomEvent('cartUpdated')); // Synchronize navbar badge triggers
+                    
+                    // FIXED DYNAMIC REDIRECT: Backend parsing customOrderId-te direct niye jabe
+                    window.location.href = `/order-success/${result.customOrderId}`;
                 });
             } else {
-                Swal.fire('Failed', result.message || 'অর্ডারটি সম্পন্ন করা যায়নি।', 'error');
+                Swal.fire('Failed', result.message || 'অর্ডারটি সম্পন্ন করা যায়নি।', 'error');
             }
         } catch (error) {
             Swal.fire('Error', 'সার্ভারে কানেক্ট করতে সমস্যা হচ্ছে, আবার চেষ্টা করুন!', 'error');

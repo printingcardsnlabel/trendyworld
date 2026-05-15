@@ -1,52 +1,61 @@
 <%- include('../partials/headr') %>
 
-<!-- SweetAlert2 -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <div class="min-h-screen bg-slate-50 py-12">
     <div class="container mx-auto px-4 max-w-5xl">
         
-        <!-- Header -->
         <div class="flex items-center justify-between mb-8">
             <div>
                 <h1 class="text-4xl font-black text-slate-900 tracking-tight">Orders Management</h1>
-                <p class="text-slate-500 font-medium">Monitor and process your customer orders</p>
+                <p class="text-slate-500 font-medium">Monitor and process your customer orders lifecycle</p>
             </div>
             <div class="bg-white px-4 py-2 rounded-full shadow-sm border font-bold text-slate-700">
                 Total: <%= orders.length %>
             </div>
         </div>
 
-        <!-- Scrollable Order Container (Max height for ~3 orders) -->
         <div class="overflow-y-auto pr-2 custom-scrollbar" style="max-height: 750px;">
             <div class="grid grid-cols-1 gap-6">
                 <% if(orders.length > 0) { %>
                     <% orders.forEach(order => { %>
                         <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 flex flex-col md:flex-row items-center justify-between gap-6 hover:shadow-md transition duration-300">
                             
-                            <!-- Order Info -->
                             <div class="flex-1 w-full">
-                                <div class="flex items-center gap-3 mb-3">
+                                <div class="flex flex-wrap items-center gap-2 mb-3">
                                     <span class="text-[10px] font-black uppercase tracking-widest bg-slate-100 text-slate-500 px-3 py-1 rounded-full">
                                         <%= order.createdAt.toLocaleDateString() %>
                                     </span>
-                                    <span class="text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full <%= order.status === 'Pending' ? 'bg-amber-100 text-amber-600' : 'bg-emerald-100 text-emerald-600' %>">
-                                        <%= order.status %>
+                                    
+                                    <% 
+                                        let currentStatus = order.status || 'Pending';
+                                        let statusClass = 'bg-amber-100 text-amber-700 border-amber-200';
+                                        if(currentStatus === 'Confirmed') statusClass = 'bg-emerald-100 text-emerald-700 border-emerald-200';
+                                        if(currentStatus === 'Shipped') statusClass = 'bg-blue-100 text-blue-700 border-blue-200';
+                                        if(currentStatus === 'Delivered') statusClass = 'bg-indigo-100 text-indigo-700 border-indigo-200';
+                                    %>
+                                    <span class="text-[10px] font-black uppercase tracking-widest px-3 py-1 border rounded-full <%= statusClass %>">
+                                        <%= currentStatus %>
                                     </span>
+
+                                    <% if(order.OrderId) { %>
+                                        <span class="text-[10px] font-mono font-bold bg-slate-900 text-white px-2.5 py-1 rounded-md">
+                                            #<%= order.OrderId %>
+                                        </span>
+                                    <% } %>
                                 </div>
                                 <h3 class="text-xl font-bold text-slate-800"><%= order.customerInfo.name %></h3>
                                 <p class="text-slate-500 text-sm font-medium"><i class="fa-solid fa-phone mr-1 text-xs"></i> <%= order.customerInfo.phone %></p>
                                 <p class="text-slate-400 text-xs mt-1 italic"><i class="fa-solid fa-location-dot mr-1"></i> <%= order.customerInfo.address %></p>
                             </div>
 
-                            <!-- Ordered Items -->
                             <div class="flex-1 w-full bg-slate-50 p-4 rounded-2xl border border-slate-100">
                                 <p class="text-[10px] font-bold text-slate-400 uppercase mb-2">Items List</p>
                                 <div class="space-y-1">
                                     <% order.items.forEach(item => { %>
                                         <div class="flex justify-between text-sm">
                                             <span class="font-bold text-slate-700"><%= item.title %> <span class="text-slate-400">x<%= item.quantity %></span></span>
-                                            <span class="text-slate-500">৳<%= item.price %></span>
+                                            <span class="text-slate-500">৳<%= item.regularPrice || item.price %></span>
                                         </div>
                                     <% }) %>
                                 </div>
@@ -56,19 +65,46 @@
                                 </div>
                             </div>
 
-                            <!-- Action Buttons -->
-                            <div class="flex md:flex-col gap-3 w-full md:w-auto">
-                                <% if(order.status === 'Pending') { %>
-                                    <button onclick="updateStatus('/admin/orders/confirm/<%= order._id %>', 'confirm')" 
-                                        class="flex-1 md:w-32 bg-emerald-500 hover:bg-emerald-600 text-white py-3 rounded-2xl font-bold text-xs uppercase tracking-wider transition-all shadow-sm active:scale-95">
-                                        Confirm
-                                    </button>
-                                <% } %>
+                            <div class="flex md:flex-col gap-2 w-full md:w-40">
+                                
+                                <% 
+                                    // Step Lock Logic Calculation
+                                    // 1. Confirm Button shudhu Pending obosthay open thakbe
+                                    let isConfirmDisabled = (currentStatus !== 'Pending');
+                                    
+                                    // 2. Shipped Button shudhu Confirmed obosthay open thakbe
+                                    let isShippedDisabled = (currentStatus !== 'Confirmed');
+                                    
+                                    // 3. Delivered Button shudhu Shipped obosthay open thakbe
+                                    let isDeliveredDisabled = (currentStatus !== 'Shipped');
+                                    
+                                    // CSS Styles for Disabled state
+                                    const disabledStyle = "opacity-30 pointer-events-none filter grayscale";
+                                %>
+
+                                <button onclick="updateStatus('/admin/orders/status/<%= order._id %>?status=Confirmed', 'confirm')" 
+                                        class="w-full bg-emerald-500 hover:bg-emerald-600 text-white py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all shadow-sm active:scale-95 cursor-pointer <%= isConfirmDisabled ? disabledStyle : '' %>">
+                                    <i class="fa-solid fa-check-double mr-1"></i> Confirm
+                                </button>
+                                
+                                <button onclick="updateStatus('/admin/orders/status/<%= order._id %>?status=Shipped', 'ship')" 
+                                        class="w-full bg-blue-500 hover:bg-blue-600 text-white py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all shadow-sm active:scale-95 cursor-pointer <%= isShippedDisabled ? disabledStyle : '' %>">
+                                    <i class="fa-solid fa-truck-fast mr-1"></i> Shipped
+                                </button>
+
+                                <button onclick="updateStatus('/admin/orders/status/<%= order._id %>?status=Delivered', 'deliver')" 
+                                        class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all shadow-sm active:scale-95 cursor-pointer <%= isDeliveredDisabled ? disabledStyle : '' %>">
+                                    <i class="fa-solid fa-house-circle-check mr-1"></i> Delivered
+                                </button>
+
+                                <hr class="border-slate-100 my-1 hidden md:block">
+
                                 <button onclick="updateStatus('/admin/orders/delete/<%= order._id %>', 'delete')" 
-                                    class="flex-1 md:w-32 bg-slate-900 hover:bg-red-600 text-white py-3 rounded-2xl font-bold text-xs uppercase tracking-wider transition-all shadow-sm active:scale-95">
-                                    Delete
+                                        class="w-full bg-slate-900 hover:bg-red-600 text-white py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all shadow-sm active:scale-95 cursor-pointer">
+                                    <i class="fa-solid fa-trash-can mr-1"></i> Delete
                                 </button>
                             </div>
+
                         </div>
                     <% }) %>
                 <% } else { %>
@@ -83,35 +119,39 @@
 </div>
 
 <style>
-    /* Custom Scrollbar for the Container */
-    .custom-scrollbar::-webkit-scrollbar {
-        width: 6px;
-    }
-    .custom-scrollbar::-webkit-scrollbar-track {
-        background: transparent;
-    }
-    .custom-scrollbar::-webkit-scrollbar-thumb {
-        background: #cbd5e1;
-        border-radius: 10px;
-    }
-    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-        background: #94a3b8;
-    }
+    .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 </style>
 
 <script>
     function updateStatus(url, type) {
         const config = {
             confirm: {
-                title: 'অর্ডার কনফার্ম করবেন?',
-                text: "এটি কনফার্ম করলে অর্ডারের স্ট্যাটাস আপডেট হবে!",
+                title: 'অর্ডারটি কনফার্ম করবেন?',
+                text: "কনফার্ম করলে এর পরের 'Shipped' বাটনটি আনলক হবে!",
                 icon: 'question',
                 confirmButtonText: 'হ্যাঁ, কনফার্ম করুন',
                 confirmButtonColor: '#10b981'
             },
+            ship: {
+                title: 'অর্ডারটি কি কুরিয়ারে পাঠিয়েছেন?',
+                text: "শিপড করলে এর পরের 'Delivered' বাটনটি আনলক হবে!",
+                icon: 'info',
+                confirmButtonText: 'হ্যাঁ, শিপড করুন',
+                confirmButtonColor: '#3b82f6'
+            },
+            deliver: {
+                title: 'অর্ডারটি কি ডেলিভারি সম্পন্ন হয়েছে?',
+                text: "গ্রাহক প্রোডাক্ট পেয়েছে নিশ্চিত হলে 'Delivered' সেট করুন!",
+                icon: 'success',
+                confirmButtonText: 'হ্যাঁ, সফল হয়েছে',
+                confirmButtonColor: '#4f46e5'
+            },
             delete: {
                 title: 'অর্ডারটি ডিলিট করবেন?',
-                text: "ডিলিট করলে তথ্য আর ফিরে পাওয়া যাবে না!",
+                text: "ডিলিট করলে তথ্য আর ফিরে পাওয়া যাবে না!",
                 icon: 'warning',
                 confirmButtonText: 'হ্যাঁ, ডিলিট করুন',
                 confirmButtonColor: '#ef4444'

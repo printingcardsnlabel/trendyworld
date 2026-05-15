@@ -11,6 +11,9 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
+        html,body{
+            scroll-behavior: smooth;
+        }
         body { font-family: 'Poppins', sans-serif; scroll-behavior: smooth; overflow-x: hidden; }
         h1, h2, h3, .brand-font { font-family: 'Montserrat', sans-serif; }
         .royal-red { color: #D2042D; }
@@ -46,10 +49,10 @@
             </div>
             <div class="flex gap-8">
             <nav class="hidden md:flex items-center space-x-8 font-semibold text-sm text-gray-700">
-                <a href="tel:+8801750850247" class="hover:text-[#D2042D] transition-colors flex items-center gap-1"><i class="fa-solid fa-house text-xs"></i> Home</a>
-                <a href="/contact" class="hover:text-[#D2042D] transition-colors flex items-center gap-1"><i class="fa-solid fa-envelope text-xs"></i> Contact</a>
-                <!-- <a href="/track-order" class="hover:text-[#D2042D] transition-colors flex items-center gap-1"><i class="fa-solid fa-truck-fast text-xs"></i> Track Order</a> -->
-                <!-- <a href="/more" class="hover:text-[#D2042D] transition-colors flex items-center gap-1"><i class="fa-solid fa-ellipsis text-xs"></i> More</a> -->
+                <a href="/" class="hover:text-[#D2042D] transition-colors flex items-center gap-1"><i class="fa-solid fa-house text-xs"></i> Home</a>
+                <a href="#sp" class="hover:text-[#D2042D] transition-colors flex items-center gap-1"><i class="fa-solid fa-envelope text-xs"></i> Contact</a>
+                <a href="/track-order" class="hover:text-[#D2042D] transition-colors flex items-center gap-1"><i class="fa-solid fa-truck-fast text-xs"></i> Track Order</a>
+                <a href="/more" class="hover:text-[#D2042D] transition-colors flex items-center gap-1"><i class="fa-solid fa-ellipsis text-xs"></i> More</a>
             </nav>
             
             <div class="flex items-center space-x-3">
@@ -80,7 +83,7 @@
                 </div>
                 <span>Home</span>
             </a>
-            <a href="/contact" class="flex items-center space-x-4 p-3 rounded-2xl text-gray-700 font-bold hover:bg-red-50 hover:text-[#D2042D] transition-all group">
+            <a href="#sp" class="flex items-center space-x-4 p-3 rounded-2xl text-gray-700 font-bold hover:bg-red-50 hover:text-[#D2042D] transition-all group">
                 <div class="w-10 h-10 bg-gray-50 group-hover:bg-white rounded-xl flex items-center justify-center shadow-sm transition-colors">
                     <i class="fa-solid fa-envelope"></i>
                 </div>

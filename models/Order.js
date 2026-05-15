@@ -16,8 +16,18 @@ const orderSchema = new mongoose.Schema({
         phone: String,
         address: String
     },
-    status: { type: String, default: 'Pending' }, // Pending, Shipped, Delivered
+    OrderId: {
+        type: String,
+        required: true,
+        unique: true // Jate ek id duibar na ashe
+    },
+    status: { type: String, default: 'Pending' },
+    statusTimestamps: {
+        confirmedAt: { type: Date, default: null },
+        shippedAt: { type: Date, default: null },
+        deliveredAt: { type: Date, default: null }
+    }, // Pending, Shipped, Delivered
     createdAt: { type: Date, default: Date.now }
-});
+},{ timestamps: true });
 
 module.exports = mongoose.model('Order', orderSchema);

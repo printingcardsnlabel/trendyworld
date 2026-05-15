@@ -1,0 +1,82 @@
+<%- include('partials/headr') %>
+
+<section class="py-24 bg-[#fafafa] min-h-screen flex items-center justify-center">
+    <div class="container mx-auto px-6 max-w-md">
+        
+        <div class="bg-white border border-gray-100 rounded-3xl p-8 shadow-xl text-center space-y-6 relative overflow-hidden">
+            
+            <div class="w-20 h-20 bg-green-50 text-green-500 rounded-full flex items-center justify-center text-4xl mx-auto border border-green-100 animate-pulse">
+                <i class="fa-solid fa-circle-check"></i>
+            </div>
+
+            <div class="space-y-2">
+                <h1 class="text-2xl font-black text-gray-900 uppercase tracking-tight italic">Order Placed!</h1>
+                <p class="text-gray-500 text-xs leading-relaxed px-2">
+                    Alhamdulillah! Apnar order-ti shofolbhabe joma hoyeche। Amader team khub sheghroi apnar sathe joogajog korbe।
+                </p>
+            </div>
+
+            <div class="bg-gray-50 border border-gray-100 rounded-2xl p-4 space-y-2">
+                <span class="text-[10px] text-gray-400 font-bold uppercase tracking-widest block">Your Order Tracking ID</span>
+                
+                <div class="flex items-center justify-between bg-white border border-gray-200/60 rounded-xl px-4 py-3 shadow-inner">
+                    <span id="order-id-text" class="text-lg font-black text-gray-900 tracking-widest font-mono">
+                        <%= orderId %>
+                    </span>
+                    
+                    <button onclick="copyOrderId()" id="copy-btn" class="text-gray-400 hover:text-black transition-colors px-2 py-1 text-sm focus:outline-none cursor-pointer" title="Copy Order ID">
+                        <i class="fa-regular fa-copy" id="copy-icon"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="pt-4 space-y-3 flex flex-col">
+                <a href="/" class="w-full bg-black hover:bg-gray-900 text-white py-3.5 rounded-xl text-xs font-bold uppercase tracking-widest transition-all shadow-md">
+                    Continue Shopping
+                </a>
+                <button onclick="if(document.referrer) { history.back(); } else { location.href='/'; }" class="text-xs font-bold text-gray-400 hover:text-gray-900 uppercase tracking-wider transition-colors cursor-pointer bg-transparent border-0 focus:outline-none">
+                    Go Back
+                </button>
+            </div>
+
+        </div>
+
+    </div>
+</section>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    function copyOrderId() {
+        // Target tracking id element text node read content
+        const orderIdText = document.getElementById('order-id-text').innerText.trim();
+        const copyIcon = document.getElementById('copy-icon');
+        const copyBtn = document.getElementById('copy-btn');
+
+        // Browser Native Clip Board API Call Execution
+        navigator.clipboard.writeText(orderIdText).then(() => {
+            // Visual feedback indicator switch states icon
+            copyIcon.className = "fa-solid fa-check text-green-600 animate-scale";
+            
+            // SweetAlert modern toast loader system trigger
+            Swal.fire({
+                toast: true,
+                position: 'top-end',
+                icon: 'success',
+                title: 'Order ID Copied!',
+                showConfirmButton: false,
+                timer: 2000,
+                timerProgressBar: true
+            });
+
+            // Revert back button state after 2.5 seconds loop cooldown delay time 
+            setTimeout(() => {
+                copyIcon.className = "fa-regular fa-copy text-gray-400";
+            }, 2500);
+
+        }).catch(err => {
+            console.error('Failed to copy token id field framework: ', err);
+        });
+    }
+</script>
+
+<%- include('partials/footer') %>
