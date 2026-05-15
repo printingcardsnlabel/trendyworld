@@ -1,0 +1,146 @@
+<%- include('partials/headr') %>
+
+<section class="py-10 bg-[#fbfaf7] min-h-screen">
+    <div class="container mx-auto px-6">
+        
+        <div class="text-center max-w-xl mx-auto mb-5 space-y-4">
+            <span class="inline-flex items-center gap-2 px-4 py-1.5 bg-amber-50 text-amber-700 border border-amber-200 rounded-full text-xs font-bold tracking-[0.2em] uppercase shadow-sm animate-pulse">
+                <i class="fa-solid fa-crown text-[10px]"></i> Exclusive Release
+            </span>
+            <h1 class="text-4xl md:text-5xl font-black text-gray-900 tracking-tight uppercase italic brand-font">
+                Limited <span class="text-transparent bg-clip-text bg-gradient-to-r from-amber-600 to-yellow-500">Editions</span>
+            </h1>
+            <p class="text-gray-500 text-sm font-medium">
+                Rare collectibles and premium seasonal drops. Once they are gone, they are gone forever!
+            </p>
+        </div>
+
+        <div id="limited-grid" class="grid grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-12">
+            </div>
+
+        <div id="empty-limited-state" class="hidden flex-col items-center justify-center py-20 text-center space-y-4">
+            <div class="w-20 h-20 bg-amber-50 text-amber-500 rounded-full flex items-center justify-center text-3xl shadow-inner border border-amber-100">
+                <i class="fa-solid fa-hourglass-empty"></i>
+            </div>
+            <h3 class="text-xl font-bold text-gray-800">All Editions Sold Out</h3>
+            <p class="text-gray-400 text-sm max-w-xs">Currently, there are no active limited stock campaigns running. Next drop coming soon!</p>
+            <a href="/" class="px-6 py-3 bg-black text-white rounded-full text-xs font-bold uppercase tracking-widest hover:bg-amber-600 transition-all shadow-md">Back to Shop</a>
+        </div>
+        
+    </div>
+</section>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    // Server database side array list read
+    const databaseProducts = <%- JSON.stringify(posts) %> || [];
+    const limitedGrid = document.getElementById('limited-grid');
+    const emptyLimitedState = document.getElementById('empty-limited-state');
+
+    // CRITICAL FILTER: Shudhu isLimited true thaka array objects generate kora hocche
+    const limitedProducts = databaseProducts.filter(product => 
+        product.isLimited === true || product.isLimited === 'true'
+    );
+
+    // Layout Validation & Render Loop Engine
+    if (limitedProducts.length === 0) {
+        limitedGrid.classList.add('hidden');
+        emptyLimitedState.remove('hidden');
+        emptyLimitedState.classList.add('flex');
+    } else {
+        limitedGrid.innerHTML = limitedProducts.map(product => {
+            const hasDiscount = product.isDiscount === true || product.isDiscount === 'true';
+            const displayPrice = hasDiscount ? product.discountPrice : product.regularPrice;
+            const isNew = product.isNewArrival === true || product.isNewArrival === 'true';
+
+            return `
+                <div class="group relative bg-white rounded-3xl p-3.5 border border-amber-100/50 hover:shadow-[0_20px_50px_rgba(217,119,6,0.1)] hover:border-amber-300 transition-all duration-500 flex flex-col justify-between">
+                    <div>
+                        <div class="relative aspect-[3/4] overflow-hidden bg-gray-50 rounded-2xl">
+                            <img src="${product.imgUrl}" alt="${product.title}" 
+                                 class="w-full h-full object-cover transition-transform duration-[1.2s] cubic-bezier(0,0,0,1) group-hover:scale-105">
+                            
+                            <div class="absolute top-3 left-3 flex flex-col gap-1.5 z-10">
+                                <span class="bg-gradient-to-r from-amber-600 to-amber-700 text-white px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider shadow-md w-fit flex items-center gap-1">
+                                    <i class="fa-solid fa-bolt text-[8px]"></i> RARE CAP
+                                </span>
+                                ${isNew ? `
+                                    <span class="bg-black text-white px-2.5 py-1 rounded-lg text-[9px] font-bold tracking-wider shadow-md w-fit">
+                                        FRESH
+                                    </span>
+                                ` : ''}
+                            </div>
+
+                            <div class="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-center justify-center gap-3 backdrop-blur-[2px]">
+                                <a href="/product/${product._id}" class="w-11 h-11 bg-white hover:bg-amber-600 hover:text-white text-gray-900 rounded-full flex items-center justify-center shadow-xl transition-all scale-75 opacity-0 group-hover:scale-100 group-hover:opacity-100 duration-300">
+                                    <i class="fa-regular fa-eye"></i>
+                                </a>
+                                <button class="w-11 h-11 bg-white hover:bg-black hover:text-white text-gray-900 rounded-full flex items-center justify-center shadow-xl transition-all scale-75 opacity-0 group-hover:scale-100 group-hover:opacity-100 duration-300 delay-75">
+                                    <i class="fa-regular fa-heart"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="mt-4 px-1">
+                            <span class="text-[9px] text-amber-600 font-bold uppercase tracking-widest block mb-1">${product.category}</span>
+                            <h3 onclick="location.href='/product/${product._id}'" class="text-sm font-bold text-gray-800 hover:text-amber-600 transition-colors line-clamp-1 cursor-pointer">
+                                ${product.title}
+                            </h3>
+                        </div>
+                    </div>
+
+                    <div class="mt-5 px-1 pb-1">
+                        <div class="flex items-center justify-between pt-3 border-t border-gray-100">
+                            <div class="flex flex-col">
+                                ${hasDiscount ? `
+                                    <span class="text-[10px] text-gray-400 line-through font-normal">
+                                        ৳${Number(product.regularPrice).toLocaleString()}
+                                    </span>
+                                ` : ''}
+                                <span class="text-lg font-black text-gray-900 tracking-tight">
+                                    ৳${Number(displayPrice).toLocaleString()}
+                                </span>
+                            </div>
+                            
+                            <button onclick="addToCart('${product._id}', '${product.title.replace(/'/g, "\\'")}', '${displayPrice}', '${product.imgUrl}')" 
+                                    class="w-10 h-10 rounded-2xl bg-gray-900 text-white hover:bg-amber-600 flex items-center justify-center transition-all duration-300 active:scale-90 shadow-sm hover:shadow-md">
+                                <i class="fa-solid fa-basket-shopping text-sm"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    // Local Storage synchronized Add To Cart operation wrapper logic
+    function addToCart(id, title, regularPrice, img) {
+        let cart = JSON.parse(localStorage.getItem('cart')) || [];
+        const existingItem = cart.find(item => item.id === id);
+
+        if (existingItem) {
+            existingItem.quantity += 1;
+            Swal.fire({
+                title: 'Quantity Updated',
+                text: "Exclusive product quantity increased in active cart list.",
+                icon: 'info',
+                confirmButtonText: 'OK',
+                confirmButtonColor: '#000000'
+            });
+        } else {
+            cart.push({ id, title, regularPrice, img, quantity: 1 });
+            Swal.fire({
+                title: 'Premium Drop Claimed!',
+                text: "Limited collection added safely to shopping basket.",
+                icon: 'success',
+                confirmButtonText: 'OK',
+                confirmButtonColor: '#d97706' // Synced amber golden notification button
+            });
+        }
+
+        localStorage.setItem('cart', JSON.stringify(cart));
+        window.dispatchEvent(new CustomEvent('cartUpdated')); // Global header counts alert sync
+    }
+</script>
+
+<%- include('partials/footer') %>

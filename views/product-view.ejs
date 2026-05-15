@@ -1,87 +1,129 @@
 <%- include('partials/headr') %>
 
-<div class="container mx-auto px-6 py-12 min-h-screen">
-    <!-- Back Button -->
-    <a href="/" class="text-gray-500 hover:text-black transition flex items-center gap-2 mb-8">
-        <i class="fa-solid fa-arrow-left"></i> Back to Shop
-    </a>
-
-    <div class="flex flex-col lg:flex-row gap-12">
-        <!-- Product Image -->
-        <div class="lg:w-1/2">
-            <div class="overflow-hidden rounded-xl bg-gray-50 shadow-sm border">
-                <img src="<%= product.imgUrl %>" alt="<%= product.title %>" class="w-full h-auto object-cover hover:scale-105 transition duration-500">
+    <div class="container mx-auto px-6 py-12 min-h-screen">
+        <button type="button" onclick="if(document.referrer) { history.back(); } else { location.href='/'; }" class="text-gray-500 hover:text-black transition flex items-center gap-2 mb-8 focus:outline-none cursor-pointer">
+    <i class="fa-solid fa-arrow-left"></i> Back
+</button>
+        <div class="flex flex-col lg:flex-row gap-12">
+            <div class="lg:w-1/2">
+                <div class="overflow-hidden rounded-xl bg-gray-50 shadow-sm border">
+                    <img src="<%= product.imgUrl %>" alt="<%= product.title %>"
+                        class="w-full h-auto object-cover hover:scale-105 transition duration-500">
+                </div>
             </div>
-        </div>
 
-        <!-- Product Details -->
-        <div class="lg:w-1/2">
-            <div class="space-y-6">
-                <!-- Category Badge -->
-                <span class="inline-block px-3 py-1 bg-orange-100 text-orange-600 text-xs font-bold uppercase tracking-widest rounded-full">
-                    <%= product.category %>
-                </span>
-
-                <h1 class="text-4xl font-extrabold text-gray-900 leading-tight">
-                    <%= product.title %>
-                </h1>
-
-                <div class="flex items-center gap-4">
-                    <p class="text-3xl font-black text-red-600">৳<%= product.price %></p>
-                    <span class="text-green-600 font-semibold text-sm bg-green-50 px-2 py-1 rounded">In Stock</span>
-                </div>
-
-                <div class="border-t border-b py-6 text-gray-600 leading-relaxed">
-                    <h4 class="text-sm font-bold text-gray-900 uppercase mb-2">Description</h4>
-                    <p><%= product.content %></p>
-                </div>
-
-                <!-- Add to Cart Action -->
-                <div class="flex flex-col sm:flex-row gap-4 pt-4">
-                    <button onclick="addToCart('<%= product._id %>', '<%= product.title %>', '<%= product.price %>', '<%= product.imgUrl %>')" 
-                        class="flex-1 bg-black text-white py-4 px-8 rounded-full font-bold uppercase tracking-widest hover:bg-gray-800 transition shadow-lg flex items-center justify-center gap-2">
-                        <i class="fa-solid fa-cart-plus"></i> Add to Cart
-                    </button>
-                    
-                    <button class="p-4 border border-gray-200 rounded-full hover:bg-gray-50 transition">
-                        <i class="fa-regular fa-heart text-xl"></i>
-                    </button>
-                </div>
-
-                <!-- Features -->
-                <div class="grid grid-cols-2 gap-4 pt-8">
-                    <div class="flex items-center gap-3 text-sm text-gray-500">
-                        <i class="fa-solid fa-truck-fast text-gray-800"></i> Fast Delivery
+            <div class="lg:w-1/2">
+                <div class="space-y-6">
+                    <div class="flex items-center gap-2">
+                        <span class="inline-block px-3 py-1 bg-orange-100 text-orange-600 text-xs font-bold uppercase tracking-widest rounded-full">
+                            <%= product.category %>
+                        </span>
+                        
+                        <% if (product.isDiscount === true || product.isDiscount === 'true') { 
+                            let regPrice = parseFloat(product.regularPrice) || 0;
+                            let discPrice = parseFloat(product.discountPrice) || 0;
+                            let percentageOff = 0;
+                            
+                            if (regPrice > 0 && discPrice < regPrice) {
+                                percentageOff = Math.round(((regPrice - discPrice) / regPrice) * 100);
+                            }
+                        %>
+                            <span class="inline-block px-3 py-1 bg-red-100 text-red-600 text-xs font-black uppercase tracking-widest rounded-full">
+                                SALE
+                            </span>
+                            <% if (percentageOff > 0) { %>
+                                <span class="inline-block px-3 py-1 bg-red-600 text-white text-xs font-bold rounded-full shadow-sm animate-pulse">
+                                    <%= percentageOff %>% OFF
+                                </span>
+                            <% } %>
+                        <% } %>
                     </div>
-                    <div class="flex items-center gap-3 text-sm text-gray-500">
-                        <i class="fa-solid fa-rotate-left text-gray-800"></i> 7 Days Return
+
+                    <h1 class="text-4xl font-extrabold text-gray-900 leading-tight">
+                        <%= product.title %>
+                    </h1>
+
+                    <div class="flex items-baseline gap-4">
+                        <% 
+                           // Active price logic check
+                           let hasDiscount = product.isDiscount === true || product.isDiscount === 'true';
+                           let activePrice = hasDiscount ? product.discountPrice : product.regularPrice;
+                        %>
+                        <p class="text-3xl font-black text-red-600">
+                            ৳<%= Number(activePrice).toLocaleString() %>
+                        </p>
+                        
+                        <% if (hasDiscount) { %>
+                            <p class="text-lg text-gray-400 line-through font-medium">
+                                ৳<%= Number(product.regularPrice).toLocaleString() %>
+                            </p>
+                        <% } %>
+                        
+                        <span class="text-green-600 font-semibold text-sm bg-green-50 px-2 py-1 rounded ml-2">In Stock</span>
+                    </div>
+
+                    <div class="border-t border-b py-6 text-gray-600 leading-relaxed">
+                        <h4 class="text-sm font-bold text-gray-900 uppercase mb-2">Description</h4>
+                        <p>
+                            <%= product.content %>
+                        </p>
+                    </div>
+
+                    <div class="flex flex-col sm:flex-row gap-4 pt-4">
+                        <button
+                            onclick="addToCart('<%= product._id %>', '<%= product.title.replace(/'/g, "\\'") %>', '<%= activePrice %>', '<%= product.imgUrl %>')"
+                            class="flex-1 bg-black text-white py-4 px-8 rounded-full font-bold uppercase tracking-widest hover:bg-gray-800 transition shadow-lg flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-cart-plus"></i> Add to Cart
+                        </button>
+
+                        <button class="p-4 border border-gray-200 rounded-full hover:bg-gray-50 transition">
+                            <i class="fa-regular fa-heart text-xl"></i>
+                        </button>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4 pt-8">
+                        <div class="flex items-center gap-3 text-sm text-gray-500">
+                            <i class="fa-solid fa-truck-fast text-gray-800"></i> Fast Delivery
+                        </div>
+                        <div class="flex items-center gap-3 text-sm text-gray-500">
+                            <i class="fa-solid fa-rotate-left text-gray-800"></i> 7 Days Return
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
 
-<!-- Footer -->
-<%- include('partials/footer') %>
+    <%- include('partials/footer') %>
 
-<!-- Script for Add to Cart -->
-<script>
-    function addToCart(id, title, price, img) {
-        let cart = JSON.parse(localStorage.getItem('cart')) || [];
-        const existingItem = cart.find(item => item.id === id);
+    <script>
+        function addToCart(id, title, regularPrice, img) {
+            let cart = JSON.parse(localStorage.getItem('cart')) || [];
+            const existingItem = cart.find(item => item.id === id);
 
-        if (existingItem) {
-            existingItem.quantity += 1;
-        } else {
-            cart.push({ id, title, price, img, quantity: 1 });
+            if (existingItem) {
+                existingItem.quantity += 1;
+
+                Swal.fire({
+                    title: 'Already in Cart!',
+                    text: "Product quantity increased. Go to cart to review your list.",
+                    icon: 'info',
+                    confirmButtonText: 'OK',
+                    confirmButtonColor: '#000000'
+                });
+            } else {
+                cart.push({ id, title, regularPrice, img, quantity: 1 });
+                
+                Swal.fire({
+                    title: 'Success!',
+                    text: "Product added to your shopping cart.",
+                    icon: 'success',
+                    confirmButtonText: 'OK',
+                    confirmButtonColor: '#D2042D'
+                });
+            }
+
+            localStorage.setItem('cart', JSON.stringify(cart));
+            window.dispatchEvent(new CustomEvent('cartUpdated'));
         }
-
-        localStorage.setItem('cart', JSON.stringify(cart));
-        
-        // Custom Event for Live Navbar Update
-        window.dispatchEvent(new CustomEvent('cartUpdated'));
-
-        alert(`${title} added to cart!`);
-    }
-</script>
+    </script>

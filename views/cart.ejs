@@ -4,10 +4,8 @@
     <h1 class="text-3xl font-extrabold mb-10 text-gray-900 border-b pb-4">Your Shopping Cart</h1>
 
     <div class="flex flex-col lg:flex-row gap-8">
-        <!-- Left: Cart Items -->
         <div class="lg:w-2/3">
             <div id="cart-wrapper" class="space-y-6">
-                <!-- Items will be injected here by JS -->
                 <div id="loading-msg" class="text-center py-10 text-gray-500 text-lg">Loading your cart...</div>
             </div>
             
@@ -18,7 +16,6 @@
             </div>
         </div>
 
-        <!-- Right: Order Summary -->
         <div class="lg:w-1/3">
             <div class="bg-white p-8 rounded-xl shadow-sm border border-gray-100 sticky top-24">
                 <h3 class="text-xl font-bold mb-6 text-gray-800">Order Summary</h3>
@@ -29,8 +26,11 @@
                     </div>
                     <div class="flex justify-between">
                         <span>Shipping</span>
-                        <span class="text-green-600 font-medium">Free</span>
+                        <span id="shipping-fee" class="font-medium">৳0</span>
                     </div>
+                    
+                    <div id="shipping-alert" class="text-xs text-amber-600 bg-amber-50 p-2 rounded border border-amber-100 hidden"></div>
+                    
                     <div class="border-t pt-4 mt-4 flex justify-between text-2xl font-black text-red-600">
                         <span>Total</span>
                         <span id="final-total">৳0</span>
@@ -45,30 +45,37 @@
 </div>
 
 <script>
-    // কার্ট থেকে ডাটা নিয়ে এসে পেজে দেখানো
+    // কার্ট থেকে ডাটা নিয়ে এসে পেজে দেখানো
     function renderCart() {
         const cart = JSON.parse(localStorage.getItem('cart')) || [];
         const wrapper = document.getElementById('cart-wrapper');
         const emptyUI = document.getElementById('empty-cart-ui');
         const subtotalEl = document.getElementById('subtotal');
+        const shippingEl = document.getElementById('shipping-fee');
+        const shippingAlert = document.getElementById('shipping-alert');
         const totalEl = document.getElementById('final-total');
 
         if (cart.length === 0) {
             wrapper.innerHTML = '';
             emptyUI.classList.remove('hidden');
-            subtotalEl.innerText = '৳0';
-            totalEl.innerText = '৳0';
+            subtotalEl.innerText = '৳0.00';
+            shippingEl.innerText = '৳0.00';
+            shippingEl.className = "text-gray-600 font-medium";
+            shippingAlert.classList.add('hidden');
+            totalEl.innerText = '৳0.00';
             return;
         }
 
         emptyUI.classList.add('hidden');
         let cartHTML = '';
-        let totalPrice = 0;
+        let subtotalPrice = 0;
 
         cart.forEach((item, index) => {
-            const itemPrice = parseFloat(item.price.replace(/[^0-9.-]+/g, "")) || 0;
+            // FIXED: item.price soriye item.regularPrice read kora hocche safe fallback shoho
+            const rawPrice = item.regularPrice ? item.regularPrice.toString() : "0";
+            const itemPrice = parseFloat(rawPrice.replace(/[^0-9.-]+/g, "")) || 0;
             const itemTotal = itemPrice * item.quantity;
-            totalPrice += itemTotal;
+            subtotalPrice += itemTotal;
 
             cartHTML += `
                 <div class="flex flex-col md:flex-row items-center justify-between bg-white p-6 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition">
@@ -76,9 +83,8 @@
                         <img src="${item.img}" class="w-24 h-24 object-cover rounded-lg shadow-sm">
                         <div>
                             <h4 class="text-lg font-bold text-gray-900">${item.title}</h4>
-                            <p class="text-red-600 font-semibold mb-3">৳${itemPrice}</p>
+                            <p class="text-red-600 font-semibold mb-3">৳${itemPrice.toFixed(2)}</p>
                             
-                            <!-- Quantity Controls -->
                             <div class="flex items-center border w-fit rounded-lg overflow-hidden bg-gray-50">
                                 <button onclick="updateQty(${index}, -1)" class="px-3 py-1 hover:bg-gray-200 transition font-bold text-gray-600">−</button>
                                 <span class="px-4 py-1 bg-white font-bold text-gray-800 border-x">${item.quantity}</span>
@@ -98,11 +104,32 @@
         });
 
         wrapper.innerHTML = cartHTML;
-        subtotalEl.innerText = '৳' + totalPrice.toFixed(2);
-        totalEl.innerText = '৳' + totalPrice.toFixed(2);
+
+        // SHIPPING LOGIC (৳3500 ba tar beshi hole shipping fee auto free)
+        let shippingFee = 80; // Default shipping fee ৳80
+        if (subtotalPrice >= 3500) {
+            shippingFee = 0;
+            shippingEl.innerText = 'Free';
+            shippingEl.className = "text-green-600 font-bold uppercase";
+            shippingAlert.classList.add('hidden');
+        } else {
+            shippingEl.innerText = '৳' + shippingFee.toFixed(2);
+            shippingEl.className = "text-gray-800 font-medium";
+            
+            // User ke intelligent notification dekhano
+            const shortAmount = 3500 - subtotalPrice;
+            shippingAlert.innerText = `Add ৳${shortAmount.toFixed(2)} more to get FREE Shipping!`;
+            shippingAlert.classList.remove('hidden');
+        }
+
+        // Final Total Calculation (Subtotal + Shipping Fee)
+        const finalTotal = subtotalPrice + shippingFee;
+
+        subtotalEl.innerText = '৳' + subtotalPrice.toFixed(2);
+        totalEl.innerText = '৳' + finalTotal.toFixed(2);
     }
 
-    // Quantity বাড়ানো বা কমানো
+    // Quantity বাড়ানো বা কমানো
     function updateQty(index, change) {
         let cart = JSON.parse(localStorage.getItem('cart')) || [];
         if (cart[index]) {
@@ -111,7 +138,6 @@
             
             localStorage.setItem('cart', JSON.stringify(cart));
             renderCart();
-            // Navbar আপডেট ইভেন্ট
             window.dispatchEvent(new CustomEvent('cartUpdated'));
         }
     }
@@ -122,7 +148,6 @@
         cart.splice(index, 1);
         localStorage.setItem('cart', JSON.stringify(cart));
         renderCart();
-        // Navbar আপডেট ইভেন্ট
         window.dispatchEvent(new CustomEvent('cartUpdated'));
     }
 

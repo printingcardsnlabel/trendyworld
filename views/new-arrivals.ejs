@@ -1,0 +1,144 @@
+<%- include('partials/headr') %>
+
+<section class="py-10 bg-[#fbfbfb] min-h-screen">
+    <div class="container mx-auto px-6">
+        
+        <div class="text-center max-w-xl mx-auto mb-5 space-y-3">
+            <span class="inline-flex items-center gap-2 px-4 py-1.5 bg-red-50 text-red-600 rounded-full text-xs font-bold tracking-[0.25em] uppercase shadow-sm">
+                <i class="fa-solid fa-sparkles animate-spin text-[10px]"></i> Just Dropped
+            </span>
+            <h1 class="text-4xl md:text-5xl font-black text-gray-900 tracking-tight uppercase italic brand-font">
+                The New <span class="text-transparent bg-clip-text bg-gradient-to-r from-red-600 to-orange-500">Arrivals</span>
+            </h1>
+            <p class="text-gray-500 text-sm font-medium">
+                Discover the latest premium fashion statements curated explicitly for your trendy lifestyle.
+            </p>
+        </div>
+
+        <div id="new-arrival-grid" class="grid grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-12">
+            </div>
+
+        <div id="empty-state" class="hidden flex-col items-center justify-center py-20 text-center space-y-4">
+            <div class="w-20 h-20 bg-gray-100 text-gray-400 rounded-full flex items-center justify-center text-3xl">
+                <i class="fa-solid fa-store-slash"></i>
+            </div>
+            <h3 class="text-xl font-bold text-gray-800">No New Collections Yet</h3>
+            <p class="text-gray-400 text-sm max-w-xs">Stay tuned! Our seasonal modern collections will arrive very soon.</p>
+            <a href="/" class="px-6 py-3 bg-black text-white rounded-full text-xs font-bold uppercase tracking-widest hover:bg-red-600 transition-all">Back to Home</a>
+        </div>
+        
+    </div>
+</section>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    // Server framework side post processing pipeline variables 
+    const allProducts = <%- JSON.stringify(posts) %> || [];
+    const arrivalGrid = document.getElementById('new-arrival-grid');
+    const emptyState = document.getElementById('empty-state');
+
+    // CRITICAL FILTER: Shudhu sei post filters map hobe jader isNewArrival flag asset true ache
+    const newArrivalProducts = allProducts.filter(product => 
+        product.isNewArrival === true || product.isNewArrival === 'true'
+    );
+
+    // Render Logic Layer Setup
+    if (newArrivalProducts.length === 0) {
+        arrivalGrid.classList.add('hidden');
+        emptyState.classList.remove('hidden');
+        emptyState.classList.add('flex');
+    } else {
+        arrivalGrid.innerHTML = newArrivalProducts.map(product => {
+            const hasDiscount = product.isDiscount === true || product.isDiscount === 'true';
+            const displayPrice = hasDiscount ? product.discountPrice : product.regularPrice;
+
+            // Calculate Dynamic Discount Percentage
+            let percentageOff = 0;
+            if (hasDiscount) {
+                let regPrice = parseFloat(product.regularPrice) || 0;
+                let discPrice = parseFloat(product.discountPrice) || 0;
+                if (regPrice > 0 && discPrice < regPrice) {
+                    percentageOff = Math.round(((regPrice - discPrice) / regPrice) * 100);
+                }
+            }
+
+            return `
+                <div class="group relative bg-white rounded-2xl p-3 border border-gray-100 hover:shadow-2xl hover:border-transparent transition-all duration-500">
+                    <div class="relative aspect-[3/4] overflow-hidden bg-gray-50 rounded-xl">
+                        <img onclick='window.location.href = "/product/${product._id}"' src="${product.imgUrl}" alt="${product.title}" 
+                             class="w-full h-full cursor-pointer object-cover transition-transform duration-[1.2s] ease-out group-hover:scale-110">
+                        
+                        <div class="absolute top-3 left-3 flex flex-col gap-1.5 z-10">
+                            <span class="bg-black text-white px-2.5 py-1 rounded-md text-[9px] font-black uppercase tracking-wider shadow-md w-fit">
+                                NEW
+                            </span>
+                            ${percentageOff > 0 ? `
+                                <span class="bg-red-600 text-white px-2.5 py-1 rounded-md text-[9px] font-black uppercase tracking-wider shadow-md w-fit">
+                                    ${percentageOff}% OFF
+                                </span>
+                            ` : ''}
+                        </div>
+
+                      
+                    </div>
+
+                    <div class="mt-4 px-1 pb-2">
+                        <span class="text-[10px] text-gray-400 font-bold uppercase tracking-widest block mb-1">${product.category}</span>
+                        <h3 onclick="location.href='/product/${product._id}'" class="text-sm font-bold text-gray-800 hover:text-red-600 transition-colors line-clamp-1 cursor-pointer">
+                            ${product.title}
+                        </h3>
+                        
+                        <div class="flex items-center justify-between mt-3 pt-2 border-t border-gray-50">
+                            <div class="flex items-baseline gap-1.5">
+                                <span class="text-base font-black text-red-600">
+                                    ৳${Number(displayPrice).toLocaleString()}
+                                </span>
+                                ${hasDiscount ? `
+                                    <span class="text-xs text-gray-400 line-through font-normal">
+                                        ৳${Number(product.regularPrice).toLocaleString()}
+                                    </span>
+                                ` : ''}
+                            </div>
+                            
+                            <button onclick="addToCart('${product._id}', '${product.title.replace(/'/g, "\\'")}', '${displayPrice}', '${product.imgUrl}')" 
+                                    class="w-8 h-8 rounded-xl bg-gray-50 text-gray-700 hover:bg-red-600 hover:text-white flex items-center justify-center transition-all duration-300 active:scale-90">
+                                <i class="fa-solid fa-basket-shopping text-xs"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    // Formatted Shopping Cart Wrapper Functions Local Storage Integration
+    function addToCart(id, title, regularPrice, img) {
+        let cart = JSON.parse(localStorage.getItem('cart')) || [];
+        const existingItem = cart.find(item => item.id === id);
+
+        if (existingItem) {
+            existingItem.quantity += 1;
+            Swal.fire({
+                title: 'Quantity Updated',
+                text: "Product quantity increased in your shopping cart.",
+                icon: 'info',
+                confirmButtonText: 'OK',
+                confirmButtonColor: '#000'
+            });
+        } else {
+            cart.push({ id, title, regularPrice, img, quantity: 1 });
+            Swal.fire({
+                title: 'Added!',
+                text: "Fresh item successfully pushed to active basket.",
+                icon: 'success',
+                confirmButtonText: 'OK',
+                confirmButtonColor: '#D2042D'
+            });
+        }
+
+        localStorage.setItem('cart', JSON.stringify(cart));
+        window.dispatchEvent(new CustomEvent('cartUpdated')); // Global navbar trigger state updates
+    }
+</script>
+
+<%- include('partials/footer') %>

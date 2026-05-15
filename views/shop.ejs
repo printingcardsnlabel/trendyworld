@@ -1,0 +1,197 @@
+<%- include('partials/headr') %>
+
+<section class="py-16 bg-[#fafafa] min-h-screen">
+    <div class="container mx-auto px-6">
+        
+        <div class="border-b pb-8 mb-12 flex flex-col md:flex-row items-start md:items-end justify-between gap-6">
+            <div>
+                <h1 class="text-3xl md:text-4xl font-black text-gray-950 uppercase tracking-tight">
+                    Explore Our <span class="text-transparent bg-clip-text bg-gradient-to-r from-red-600 to-orange-500">Collections</span>
+                </h1>
+            </div>
+            
+            <div class="flex flex-wrap gap-2" id="filter-tabs">
+                <button onclick="filterCatalog('all')" id="tab-all" class="px-5 py-2 rounded-full text-xs font-bold uppercase tracking-wider bg-black text-white shadow-sm transition-all cursor-pointer">
+                    All Products
+                </button>
+                <button onclick="filterCatalog('new')" id="tab-new" class="px-5 py-2 rounded-full text-xs font-bold uppercase tracking-wider bg-white text-gray-700 hover:bg-gray-100 border border-gray-200 transition-all cursor-pointer">
+                    ✨ New Arrivals
+                </button>
+                <button onclick="filterCatalog('discount')" id="tab-discount" class="px-5 py-2 rounded-full text-xs font-bold uppercase tracking-wider bg-white text-gray-700 hover:bg-gray-100 border border-gray-200 transition-all cursor-pointer">
+                    🔥 Price Drops
+                </button>
+            </div>
+        </div>
+
+        <div id="master-catalog-grid" class="grid grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-12">
+            </div>
+
+        <div id="catalog-empty-state" class="hidden flex-col items-center justify-center py-24 text-center space-y-4">
+            <div class="w-16 h-16 bg-gray-100 text-gray-400 rounded-full flex items-center justify-center text-2xl">
+                <i class="fa-solid fa-boxes-stacked"></i>
+            </div>
+            <h3 class="text-lg font-bold text-gray-800">No matching items found</h3>
+            <p class="text-gray-400 text-sm max-w-xs">Try selecting another collection filter or tab from up top.</p>
+        </div>
+        
+    </div>
+</section>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    // Server database side array mapping variables capture
+    const rawCatalogItems = <%- JSON.stringify(posts) %> || [];
+    const catalogGrid = document.getElementById('master-catalog-grid');
+    const catalogEmptyState = document.getElementById('catalog-empty-state');
+    
+    // Active initial memory variable layout state holder
+    let activeFilter = 'all';
+
+    // Global rendering function
+    function renderCatalogItems(filterType) {
+        let itemsToRender = [];
+
+        // Logical conditions mappings
+        if (filterType === 'all') {
+            itemsToRender = rawCatalogItems;
+        } else if (filterType === 'new') {
+            itemsToRender = rawCatalogItems.filter(p => p.isNewArrival === true || p.isNewArrival === 'true');
+        } else if (filterType === 'discount') {
+            itemsToRender = rawCatalogItems.filter(p => p.isDiscount === true || p.isDiscount === 'true');
+        }
+
+        // Handle structural views behavior empty check
+        if (itemsToRender.length === 0) {
+            catalogGrid.innerHTML = '';
+            catalogGrid.classList.add('hidden');
+            catalogEmptyState.classList.remove('hidden');
+            catalogEmptyState.classList.add('flex');
+            return;
+        }
+
+        catalogEmptyState.classList.add('hidden');
+        catalogEmptyState.classList.remove('flex');
+        catalogGrid.classList.remove('hidden');
+
+        // Render matching loop algorithm execution
+        catalogGrid.innerHTML = itemsToRender.map(product => {
+            const hasDiscount = product.isDiscount === true || product.isDiscount === 'true';
+            const isNew = product.isNewArrival === true || product.isNewArrival === 'true';
+            const displayPrice = hasDiscount ? product.discountPrice : product.regularPrice;
+
+            return `
+                <div class="group flex flex-col justify-between bg-white border border-gray-100/60 rounded-2xl p-3.5 hover:shadow-xl hover:border-gray-200/80 transition-all duration-300">
+                    <div>
+                        <div class="relative aspect-[3/4] overflow-hidden bg-gray-50 rounded-xl mb-4">
+                            <img src="${product.imgUrl}" alt="${product.title}" 
+                                 class="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105">
+                            
+                            <div class="absolute top-2.5 left-2.5 flex flex-wrap gap-1.5 z-10 max-w-[85%]">
+                                ${isNew ? `
+                                    <span class="bg-black text-white px-2 py-0.5 rounded text-[8px] font-extrabold uppercase tracking-wider shadow-sm">
+                                        NEW
+                                    </span>
+                                ` : ''}
+                                ${hasDiscount ? `
+                                    <span class="bg-red-600 text-white px-2 py-0.5 rounded text-[8px] font-extrabold uppercase tracking-wider shadow-sm">
+                                        SALE
+                                    </span>
+                                ` : ''}
+                                <span class="bg-white/90 backdrop-blur-sm text-gray-900 px-2 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider border border-gray-100 shadow-sm">
+                                    ${product.category}
+                                </span>
+                            </div>
+
+                            <div class="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-2.5">
+                                <a href="/product/${product._id}" class="w-9 h-9 bg-white hover:bg-red-600 hover:text-white text-gray-900 rounded-full flex items-center justify-center shadow-lg transition-all transform translate-y-2 group-hover:translate-y-0 duration-300">
+                                    <i class="fa-regular fa-eye text-xs"></i>
+                                </a>
+                                <button class="w-9 h-9 bg-white hover:bg-black hover:text-white text-gray-900 rounded-full flex items-center justify-center shadow-lg transition-all transform translate-y-2 group-hover:translate-y-0 duration-300 delay-75">
+                                    <i class="fa-regular fa-heart text-xs"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="px-0.5">
+                            <h3 onclick="location.href='/product/${product._id}'" class="text-sm font-bold text-gray-800 hover:text-red-600 transition-colors line-clamp-2 cursor-pointer leading-snug">
+                                ${product.title}
+                            </h3>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 pt-3 border-t border-gray-50 px-0.5">
+                        <div class="flex items-center justify-between">
+                            <div class="flex flex-col">
+                                ${hasDiscount ? `
+                                    <span class="text-[10px] text-gray-400 line-through">
+                                        ৳${Number(product.regularPrice).toLocaleString()}
+                                    </span>
+                                ` : ''}
+                                <span class="text-base font-black text-gray-900">
+                                    ৳${Number(displayPrice).toLocaleString()}
+                                </span>
+                            </div>
+                            
+                            <button onclick="addToCart('${product._id}', '${product.title.replace(/'/g, "\\'")}', '${displayPrice}', '${product.imgUrl}')" 
+                                    class="w-9 h-9 rounded-xl bg-gray-900 text-white hover:bg-red-600 flex items-center justify-center transition-colors duration-200 active:scale-95 shadow-sm">
+                                <i class="fa-solid fa-cart-plus text-xs"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    // Interactive button switcher design layouts switching controls
+    function filterCatalog(type) {
+        activeFilter = type;
+        const buttons = document.querySelectorAll('#filter-tabs button');
+        
+        // Dynamic color management logic cycles
+        buttons.forEach(btn => {
+            btn.className = "px-5 py-2 rounded-full text-xs font-bold uppercase tracking-wider bg-white text-gray-700 hover:bg-gray-100 border border-gray-200 transition-all cursor-pointer";
+        });
+
+        // Highlight selected active elements
+        document.getElementById(`tab-${type}`).className = "px-5 py-2 rounded-full text-xs font-bold uppercase tracking-wider bg-black text-white shadow-sm transition-all cursor-pointer";
+        
+        renderCatalogItems(type);
+    }
+
+    // Standard shopping cart local storage update handler mapping
+    function addToCart(id, title, regularPrice, img) {
+        let cart = JSON.parse(localStorage.getItem('cart')) || [];
+        const existingItem = cart.find(item => item.id === id);
+
+        if (existingItem) {
+            existingItem.quantity += 1;
+            Swal.fire({
+                title: 'Cart Updated',
+                text: "Item quantity increased safely in active shopping cart.",
+                icon: 'info',
+                confirmButtonText: 'OK',
+                confirmButtonColor: '#000000'
+            });
+        } else {
+            cart.push({ id, title, regularPrice, img, quantity: 1 });
+            Swal.fire({
+                title: 'Added!',
+                text: "Item added successfully to shopping list.",
+                icon: 'success',
+                confirmButtonText: 'OK',
+                confirmButtonColor: '#D2042D'
+            });
+        }
+
+        localStorage.setItem('cart', JSON.stringify(cart));
+        window.dispatchEvent(new CustomEvent('cartUpdated'));
+    }
+
+    // Initial default layout load engine initialization trigger
+    document.addEventListener('DOMContentLoaded', () => {
+        renderCatalogItems('all');
+    });
+</script>
+
+<%- include('partials/footer') %>

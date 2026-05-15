@@ -1,0 +1,150 @@
+<%- include('partials/headr') %>
+
+<section class="py-10 bg-[#fafafa] min-h-screen">
+    <div class="container mx-auto px-6">
+        
+        <div class="text-center max-w-xl mx-auto mb-5 space-y-4">
+            <span class="inline-flex items-center gap-2 px-4 py-1.5 bg-red-50 text-red-600 rounded-full text-xs font-bold tracking-[0.2em] uppercase shadow-sm animate-bounce">
+                <i class="fa-solid fa-tags text-[10px]"></i> Up to 50% Discount
+            </span>
+            <h1 class="text-4xl md:text-5xl font-black text-gray-900 tracking-tight uppercase italic brand-font">
+                Flash <span class="text-transparent bg-clip-text bg-gradient-to-r from-red-600 to-orange-500">Discount</span> Sales
+            </h1>
+            <p class="text-gray-500 text-sm font-medium">
+                Grab your favorite premium fashion pieces at unbeatable prices. Limited stock available!
+            </p>
+        </div>
+
+        <div id="discount-grid" class="grid grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-12">
+            </div>
+
+        <div id="empty-discount-state" class="hidden flex-col items-center justify-center py-20 text-center space-y-4">
+            <div class="w-20 h-20 bg-gray-100 text-gray-400 rounded-full flex items-center justify-center text-3xl shadow-inner">
+                <i class="fa-solid fa-percent"></i>
+            </div>
+            <h3 class="text-xl font-bold text-gray-800">No Discounts Available Right Now</h3>
+            <p class="text-gray-400 text-sm max-w-xs">All products are currently at their regular pricing. Check back soon for exciting campaigns!</p>
+            <a href="/" class="px-6 py-3 bg-black text-white rounded-full text-xs font-bold uppercase tracking-widest hover:bg-red-600 transition-all shadow-md">Explore All Shop</a>
+        </div>
+        
+    </div>
+</section>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    // Server framework pass kora 'posts' stack read kora hocche
+    const serverProducts = <%- JSON.stringify(posts) %> || [];
+    const discountGrid = document.getElementById('discount-grid');
+    const emptyDiscountState = document.getElementById('empty-discount-state');
+
+    // CRITICAL FILTER: Shudhu isDiscount true thaka array elements filter kora hocche
+    const discountedProducts = serverProducts.filter(product => 
+        product.isDiscount === true || product.isDiscount === 'true'
+    );
+
+    // Layout Validation & Render Execution
+    if (discountedProducts.length === 0) {
+        discountGrid.classList.add('hidden');
+        emptyDiscountState.classList.remove('hidden');
+        emptyDiscountState.classList.add('flex');
+    } else {
+        discountGrid.innerHTML = discountedProducts.map(product => {
+            const displayPrice = product.discountPrice;
+            const regPrice = parseFloat(product.regularPrice) || 0;
+            const discPrice = parseFloat(product.discountPrice) || 0;
+            
+            // Math Formula for accurate round percentage off calculation
+            let percentageOff = 0;
+            if (regPrice > 0 && discPrice < regPrice) {
+                percentageOff = Math.round(((regPrice - discPrice) / regPrice) * 100);
+            }
+
+            return `
+                <div class="group relative bg-white rounded-3xl p-3 border border-gray-100/80 hover:shadow-[0_20px_50px_rgba(210,4,45,0.08)] hover:border-red-200 transition-all duration-500 flex flex-col justify-between">
+                    <div>
+                        <div class="relative aspect-[3/4] overflow-hidden bg-gray-50 rounded-2xl">
+                            <img src="${product.imgUrl}" alt="${product.title}" 
+                                 class="w-full h-full object-cover transition-transform duration-[1.2s] cubic-bezier(0,0,0,1) group-hover:scale-110">
+                            
+                            <div class="absolute top-3 left-3 flex flex-col gap-1.5 z-10">
+                                <span class="bg-red-600 text-white px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider shadow-md w-fit flex items-center gap-1">
+                                    <i class="fa-solid fa-fire text-[8px]"></i> HOT DEAL
+                                </span>
+                                ${percentageOff > 0 ? `
+                                    <span class="bg-black text-white px-2.5 py-1 rounded-lg text-[9px] font-bold tracking-wider shadow-md w-fit">
+                                        SAVE ${percentageOff}%
+                                    </span>
+                                ` : ''}
+                            </div>
+
+                            <div class="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-center justify-center gap-3 backdrop-blur-[2px]">
+                                <a href="/product/${product._id}" class="w-11 h-11 bg-white hover:bg-red-600 hover:text-white text-gray-900 rounded-full flex items-center justify-center shadow-xl transition-all scale-75 opacity-0 group-hover:scale-100 group-hover:opacity-100 duration-300">
+                                    <i class="fa-regular fa-eye"></i>
+                                </a>
+                                <button class="w-11 h-11 bg-white hover:bg-black hover:text-white text-gray-900 rounded-full flex items-center justify-center shadow-xl transition-all scale-75 opacity-0 group-hover:scale-100 group-hover:opacity-100 duration-300 delay-75">
+                                    <i class="fa-regular fa-heart"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="mt-4 px-1">
+                            <span class="text-[9px] text-gray-400 font-bold uppercase tracking-widest block mb-1">${product.category}</span>
+                            <h3 onclick="location.href='/product/${product._id}'" class="text-sm font-bold text-gray-800 hover:text-red-600 transition-colors line-clamp-1 cursor-pointer">
+                                ${product.title}
+                            </h3>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 px-1 pb-1">
+                        <div class="flex items-center justify-between pt-3 border-t border-gray-50">
+                            <div class="flex flex-col">
+                                <span class="text-xs text-gray-400 line-through font-normal">
+                                    ৳${Number(product.regularPrice).toLocaleString()}
+                                </span>
+                                <span class="text-lg font-black text-red-600 tracking-tight">
+                                    ৳${Number(displayPrice).toLocaleString()}
+                                </span>
+                            </div>
+                            
+                            <button onclick="addToCart('${product._id}', '${product.title.replace(/'/g, "\\'")}', '${displayPrice}', '${product.imgUrl}')" 
+                                    class="w-10 h-10 rounded-2xl bg-gray-50 text-gray-800 hover:bg-red-600 hover:text-white flex items-center justify-center transition-all duration-300 active:scale-90 shadow-sm hover:shadow-md">
+                                <i class="fa-solid fa-basket-shopping text-sm"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    // Local Storage synchronized Add To Cart system logic
+    function addToCart(id, title, regularPrice, img) {
+        let cart = JSON.parse(localStorage.getItem('cart')) || [];
+        const existingItem = cart.find(item => item.id === id);
+
+        if (existingItem) {
+            existingItem.quantity += 1;
+            Swal.fire({
+                title: 'Quantity Increased!',
+                text: "Product count updated inside active cart.",
+                icon: 'info',
+                confirmButtonText: 'OK',
+                confirmButtonColor: '#000000'
+            });
+        } else {
+            cart.push({ id, title, regularPrice, img, quantity: 1 });
+            Swal.fire({
+                title: 'Discounted Deal Added!',
+                text: "Product successfully pushed to active basket list.",
+                icon: 'success',
+                confirmButtonText: 'OK',
+                confirmButtonColor: '#D2042D'
+            });
+        }
+
+        localStorage.setItem('cart', JSON.stringify(cart));
+        window.dispatchEvent(new CustomEvent('cartUpdated')); // Broadcast global event navbar count updates
+    }
+</script>
+
+<%- include('partials/footer') %>

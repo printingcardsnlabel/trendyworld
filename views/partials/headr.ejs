@@ -1,63 +1,135 @@
-
 <!DOCTYPE html>
-<html lang="en">
+<html lang="bn">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Trendy World | Premium Shop</title>
+    <title>TRENDY WORLD | Premium Fashion</title>
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
-        body { font-family: 'Inter', sans-serif; }
-        html,body{
-            scroll-behavior: smooth;
-        }
-        .sticky-nav { backdrop-filter: blur(10px); background-color: rgba(18, 18, 18, 0.95); }
+        body { font-family: 'Poppins', sans-serif; scroll-behavior: smooth; overflow-x: hidden; }
+        h1, h2, h3, .brand-font { font-family: 'Montserrat', sans-serif; }
+        .royal-red { color: #D2042D; }
+        .bg-royal-red { background-color: #D2042D; }
         
-        .hero-gradient { 
-            background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&q=80&w=2070'); 
-            background-size: cover; 
-            background-position: center; 
-        }
+        #cart-sidebar, #checkout-modal { transition: transform 0.6s cubic-bezier(0.77, 0, 0.175, 1); }
+        /* Mobile Menu Animation Smoothness */
+        #mobile-menu { transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+        
+        .product-card:hover .quick-add { transform: translateY(0); opacity: 1; }
+        .input-field { @apply w-full bg-gray-50 border border-gray-200 px-4 py-4 rounded-2xl focus:outline-none focus:border-red-600 mb-4 transition-all text-sm; }
+        .payment-option { @apply border-2 border-gray-100 p-5 rounded-2xl cursor-pointer transition-all flex items-center space-x-4 bg-white hover:border-red-500; }
+        .payment-option.active { @apply border-red-600 bg-red-50 ring-2 ring-red-100; }
+        .swiper-pagination-bullet-active { background: #D2042D !important; width: 35px !important; border-radius: 5px !important; }
+        
+        .item-card { @apply group flex flex-col items-center justify-center bg-white p-8 rounded-[35px] border border-gray-100 shadow-sm hover:border-red-500 transition-all duration-300; }
+        .item-icon-box { @apply w-16 h-16 bg-gray-50 rounded-2xl flex items-center justify-center mb-4 group-hover:bg-red-50 transition-colors; }
 
-        /* Red Accent for Action Buttons */
-        .btn-red {
-            background-color: #E11D48; /* Premium Rose Red */
-            color: white;
-            transition: all 0.3s ease;
-        }
-        .btn-red:hover {
-            background-color: #BE123C;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(225, 29, 72, 0.3);
-        }
-        
-        .category-card:hover img { transform: scale(1.05); }
+        .bg-banner-1 { background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?auto=format&fit=crop&w=1200'); background-size: cover; background-position: center; }
+        .bg-banner-2 { background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&w=1200'); background-size: cover; background-position: center; }
+        .bg-banner-3 { background: linear-gradient(rgba(20, 20, 20, 0.7), rgba(20, 20, 20, 0.7)), url('https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?auto=format&fit=crop&w=1200'); background-size: cover; background-position: center; }
+        .bg-banner-4 { background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url('https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=1200'); background-size: cover; background-position: center; }
+        .bg-banner-5 { background: linear-gradient(rgba(13, 59, 102, 0.8), rgba(13, 59, 102, 0.8)), url('https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=1200'); background-size: cover; background-position: center; }
     </style>
 </head>
-   <!-- Header -->
-    <header class="sticky top-0 z-50 sticky-nav border-b border-gray-800">
-        <nav class="container mx-auto px-6 py-4 flex items-center justify-between">
-            <div class="text-2xl font-bold tracking-tighter text-white">
-                TRENDY<span class="text-red-500">WORLD</span>
-            </div>
+<body class="bg-gray-50">
+
+    <header class="sticky top-0 bg-white/80 backdrop-blur-xl z-50 border-b border-gray-100">
+        <div class="container mx-auto px-6 py-4 flex justify-between items-center">
             
-            <div class="hidden md:flex space-x-8 text-sm font-medium text-gray-300">
-                <a href="/" class="hover:text-red-400 transition">Home</a>
-                <a href="#" class="hover:text-red-400 transition">Men's Collection</a>
-                <a href="#" class="hover:text-red-400 transition">New Arrivals</a>
-                <a href="#" class="hover:text-red-400 transition">Best Sellers</a>
-                <a href="#" class="hover:text-red-400 transition">About Us</a>
+            <div class="text-2xl font-black italic tracking-tighter brand-font cursor-pointer select-none" onclick="location.href='/'">
+                TRENDY<span class="royal-red">WORLD</span>
             </div>
-
-            <div class="flex items-center space-x-5 text-white">
-                <div class="relative hidden lg:block">
-                    <input type="text" placeholder="Search..." class="bg-gray-800 border-none rounded-full py-1 px-4 text-xs focus:ring-1 focus:ring-red-500 w-48 text-gray-200">
-                </div>
-               <%- include('./cartBtn') %>
-
+            <div class="flex gap-8">
+            <nav class="hidden md:flex items-center space-x-8 font-semibold text-sm text-gray-700">
+                <a href="tel:+8801750850247" class="hover:text-[#D2042D] transition-colors flex items-center gap-1"><i class="fa-solid fa-house text-xs"></i> Home</a>
+                <a href="/contact" class="hover:text-[#D2042D] transition-colors flex items-center gap-1"><i class="fa-solid fa-envelope text-xs"></i> Contact</a>
+                <!-- <a href="/track-order" class="hover:text-[#D2042D] transition-colors flex items-center gap-1"><i class="fa-solid fa-truck-fast text-xs"></i> Track Order</a> -->
+                <!-- <a href="/more" class="hover:text-[#D2042D] transition-colors flex items-center gap-1"><i class="fa-solid fa-ellipsis text-xs"></i> More</a> -->
+            </nav>
+            
+            <div class="flex items-center space-x-3">
+                <%- include('./cartBtn') %>
+                
+                <button id="menu-toggle-btn" class="md:hidden w-10 h-10 flex items-center justify-center bg-gray-50 text-gray-800 rounded-xl hover:bg-gray-100 active:scale-95 transition-all outline-none">
+                    <i class="fa-solid fa-ellipsis-vertical text-xl"></i>
+                </button>
             </div>
-        </nav>
+            </div>
+        </div>
     </header>
+
+    <div id="mobile-menu-overlay" class="fixed inset-0 bg-black/40 z-50 hidden opacity-0 transition-opacity duration-300"></div>
+
+    <div id="mobile-menu" class="fixed top-0 right-0 h-full w-[280px] bg-white z-[60] shadow-2xl transform translate-x-full flex flex-col justify-between border-l border-gray-100">
+        <div class="p-6 border-b border-gray-100 flex justify-between items-center">
+            <span class="text-xs font-black uppercase text-gray-400 tracking-widest">Navigation</span>
+            <button id="menu-close-btn" class="w-8 h-8 rounded-full bg-gray-50 hover:bg-red-50 hover:text-red-600 flex items-center justify-center transition-colors">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <nav class="flex-grow p-6 space-y-4">
+            <a href="/" class="flex items-center space-x-4 p-3 rounded-2xl text-gray-700 font-bold hover:bg-red-50 hover:text-[#D2042D] transition-all group">
+                <div class="w-10 h-10 bg-gray-50 group-hover:bg-white rounded-xl flex items-center justify-center shadow-sm transition-colors">
+                    <i class="fa-solid fa-house"></i>
+                </div>
+                <span>Home</span>
+            </a>
+            <a href="/contact" class="flex items-center space-x-4 p-3 rounded-2xl text-gray-700 font-bold hover:bg-red-50 hover:text-[#D2042D] transition-all group">
+                <div class="w-10 h-10 bg-gray-50 group-hover:bg-white rounded-xl flex items-center justify-center shadow-sm transition-colors">
+                    <i class="fa-solid fa-envelope"></i>
+                </div>
+                <span>Contact</span>
+            </a>
+            <a href="/track-order" class="flex items-center space-x-4 p-3 rounded-2xl text-gray-700 font-bold hover:bg-red-50 hover:text-[#D2042D] transition-all group">
+                <div class="w-10 h-10 bg-gray-50 group-hover:bg-white rounded-xl flex items-center justify-center shadow-sm transition-colors">
+                    <i class="fa-solid fa-truck-fast"></i>
+                </div>
+                <span>Track Order</span>
+            </a>
+            <a href="/more" class="flex items-center space-x-4 p-3 rounded-2xl text-gray-700 font-bold hover:bg-red-50 hover:text-[#D2042D] transition-all group">
+                <div class="w-10 h-10 bg-gray-50 group-hover:bg-white rounded-xl flex items-center justify-center shadow-sm transition-colors">
+                    <i class="fa-solid fa-ellipsis"></i>
+                </div>
+                <span>More</span>
+            </a>
+        </nav>
+
+        <div class="p-6 border-t border-gray-50 bg-gray-50/50">
+            <p class="text-[10px] text-center font-bold tracking-widest text-gray-400 uppercase">TRENDY WORLD © 2026</p>
+        </div>
+    </div>
+
+    <script>
+        const menuToggleBtn = document.getElementById('menu-toggle-btn');
+        const menuCloseBtn = document.getElementById('menu-close-btn');
+        const mobileMenu = document.getElementById('mobile-menu');
+        const mobileMenuOverlay = document.getElementById('mobile-menu-overlay');
+
+        function openMenu() {
+            mobileMenuOverlay.classList.remove('hidden');
+            setTimeout(() => {
+                mobileMenuOverlay.classList.add('opacity-100');
+                mobileMenu.classList.remove('translate-x-full');
+            }, 10);
+            document.body.style.overflow = 'hidden'; // Prevents background scroll when open
+        }
+
+        function closeMenu() {
+            mobileMenu.classList.add('translate-x-full');
+            mobileMenuOverlay.classList.remove('opacity-100');
+            setTimeout(() => {
+                mobileMenuOverlay.classList.add('hidden');
+            }, 400);
+            document.body.style.overflow = '';
+        }
+
+        menuToggleBtn.addEventListener('click', openMenu);
+        menuCloseBtn.addEventListener('click', closeMenu);
+        mobileMenuOverlay.addEventListener('click', closeMenu);
+    </script>

@@ -5,7 +5,6 @@
         <h2 class="text-3xl font-bold mb-8 text-gray-800 border-b pb-4">Checkout Details</h2>
         
         <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
-            <!-- Shipping Form -->
             <form id="order-form" class="space-y-4">
                 <div>
                     <label class="block text-sm font-semibold text-gray-700">Full Name</label>
@@ -24,15 +23,26 @@
                 </button>
             </form>
 
-            <!-- Order Preview -->
-            <div class="bg-gray-50 p-6 rounded-xl border">
-                <h4 class="text-lg font-bold mb-4">Order Summary</h4>
-                <div id="checkout-items" class="space-y-3 mb-4">
-                    <!-- Items will appear here -->
+            <div class="bg-gray-50 p-6 rounded-xl border flex flex-col justify-between">
+                <div>
+                    <h4 class="text-lg font-bold mb-4">Order Summary</h4>
+                    <div id="checkout-items" class="space-y-3 mb-4 max-h-[220px] overflow-y-auto pr-1">
+                        </div>
                 </div>
-                <div class="border-t pt-4 text-xl font-black text-red-600 flex justify-between">
-                    <span>Total Bill:</span>
-                    <span id="checkout-total">৳0</span>
+                
+                <div class="border-t pt-4 space-y-2">
+                    <div class="flex justify-between text-sm text-gray-600">
+                        <span>Subtotal:</span>
+                        <span id="summary-subtotal">৳0.00</span>
+                    </div>
+                    <div class="flex justify-between text-sm text-gray-600">
+                        <span>Shipping Fee:</span>
+                        <span id="summary-shipping">৳0.00</span>
+                    </div>
+                    <div class="border-t pt-2 text-xl font-black text-red-600 flex justify-between">
+                        <span>Total Bill:</span>
+                        <span id="checkout-total">৳0</span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -41,9 +51,14 @@
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
+    // Global variable final calculations pass korar jonno
+    let globalFinalTotal = 0;
+
     function loadCheckout() {
         const cart = JSON.parse(localStorage.getItem('cart')) || [];
         const container = document.getElementById('checkout-items');
+        const subtotalEl = document.getElementById('summary-subtotal');
+        const shippingEl = document.getElementById('summary-shipping');
         const totalEl = document.getElementById('checkout-total');
         
         if (cart.length === 0) {
@@ -51,35 +66,59 @@
             return;
         }
 
-        let total = 0;
+        let subtotal = 0;
+        
         container.innerHTML = cart.map(item => {
-            total += parseFloat(item.price) * item.quantity;
+            // FIXED: item.price soriye item.regularPrice read kora hocche
+            const rawPrice = item.regularPrice ? item.regularPrice.toString() : "0";
+            const itemPrice = parseFloat(rawPrice.replace(/[^0-9.-]+/g, "")) || 0;
+            const itemTotal = itemPrice * item.quantity;
+            subtotal += itemTotal;
+
             return `
-                <div class="flex justify-between text-sm border-b pb-2 italic text-gray-600">
-                    <span>${item.title} x ${item.quantity}</span>
-                    <span>৳${(item.price * item.quantity).toFixed(2)}</span>
+                <div class="flex justify-between text-sm border-b pb-2 italic text-gray-600 items-center gap-2">
+                    <span class="line-clamp-1">${item.title} <strong class="text-black font-semibold">x ${item.quantity}</strong></span>
+                    <span class="whitespace-nowrap">৳${itemTotal.toFixed(2)}</span>
                 </div>
             `;
         }).join('');
         
-        totalEl.innerText = '৳' + total.toFixed(2);
+        // Shipping Calculations (Cart page er shathe sync rakha hoyeche)
+        let shippingFee = subtotal >= 3500 ? 0 : 80;
+        globalFinalTotal = subtotal + shippingFee;
+
+        // View integration update
+        subtotalEl.innerText = '৳' + subtotal.toFixed(2);
+        shippingEl.innerText = shippingFee === 0 ? 'Free' : '৳' + shippingFee.toFixed(2);
+        totalEl.innerText = '৳' + globalFinalTotal.toFixed(2);
     }
 
     document.getElementById('order-form').addEventListener('submit', async (e) => {
         e.preventDefault();
         
         const cart = JSON.parse(localStorage.getItem('cart')) || [];
-        const total = cart.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+        if (cart.length === 0) {
+            Swal.fire('Error', 'Your cart is empty!', 'error');
+            return;
+        }
         
         const orderData = {
             name: document.getElementById('name').value,
             phone: document.getElementById('phone').value,
             address: document.getElementById('address').value,
             items: cart,
-            totalAmount: total
+            totalAmount: globalFinalTotal // Synced with backend expectations
         };
 
         try {
+            // Processing placeholder loading system loader setup
+            Swal.fire({
+                title: 'Processing Order...',
+                text: 'Please wait a moment.',
+                allowOutsideClick: false,
+                didOpen: () => { Swal.showLoading(); }
+            });
+
             const response = await fetch('/place-order', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -92,16 +131,19 @@
                 Swal.fire({
                     icon: 'success',
                     title: 'Order Placed!',
-                    text: 'আপনার অর্ডারটি সফলভাবে গ্রহণ করা হয়েছে।',
-                    confirmButtonText: 'OK'
+                    text: 'আপনার অর্ডারটি সফলভাবে গ্রহণ করা হয়েছে।',
+                    confirmButtonText: 'OK',
+                    confirmButtonColor: '#D2042D'
                 }).then(() => {
                     localStorage.removeItem('cart'); // কার্ট খালি করা
-                    window.dispatchEvent(new CustomEvent('cartUpdated')); // ন্যাভবার আপডেট
+                    window.dispatchEvent(new CustomEvent('cartUpdated')); // ন্যাভবার কাউন্টার আপডেট
                     window.location.href = '/'; // হোমপেজে পাঠানো
                 });
+            } else {
+                Swal.fire('Failed', result.message || 'অর্ডারটি সম্পন্ন করা যায়নি।', 'error');
             }
         } catch (error) {
-            Swal.fire('Error', 'কিছু একটা সমস্যা হয়েছে!', 'error');
+            Swal.fire('Error', 'সার্ভারে কানেক্ট করতে সমস্যা হচ্ছে, আবার চেষ্টা করুন!', 'error');
         }
     });
 

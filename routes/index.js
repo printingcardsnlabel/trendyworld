@@ -14,6 +14,45 @@ const posts = await Post.find();
 });
 
 
+router.get('/shop', async function(req, res, next) {
+
+connectDB();
+
+const posts = await Post.find();
+
+  res.render('shop', {posts});
+});
+
+router.get('/new-arrivals',async (req,res)=>{
+    connectDB();
+
+const posts = await Post.find();
+res.render('new-arrivals',{posts})
+})
+
+router.get('/discounts',async (req,res)=>{
+connectDB();
+
+const posts = await Post.find();
+res.render('discounts',{posts})
+})
+
+router.get('/grab-deals',async (req,res)=>{
+
+connectDB();
+
+const posts = await Post.find();
+
+res.render('grab-sales',{posts})
+})
+
+
+
+
+
+
+
+
 
 
 router.get('/product/:id', async (req, res) => {
@@ -71,21 +110,59 @@ router.get('/cart', (req, res) => {
 });
 
 router.post('/add', async function(req, res) {
-  const {title,content,price,imgUrl,category} = req.body;
-connectDB();
-try {
-  const post = await Post.create({
-  title,content,price,imgUrl,category
-})
+  // Database connection (ensure it's connected)
+  await connectDB();
 
-  res.send('success');
-} catch (error) {
-  res.redirect('/')
-}
+  try {
+    const {
+      title,
+      content,
+      category,
+      isDiscount,
+      regularPrice, // Main price ekhon eta
+      discountPrice,
+      isNewArrival,
+      isLimited,
+      imgUrl,
+      imgUrl2,
+      imgUrl3,
+      imgUrl4,
+      imgUrl5
+    } = req.body;
 
+    const postData = {
+      title,
+      content,
+      category,
+      imgUrl,
+      imgUrl2,
+      imgUrl3,
+      imgUrl4,
+      imgUrl5,
+      // Checkbox handle kora (string 'true' ke boolean true-te convert kora)
+      isDiscount: isDiscount === 'true',
+      isNewArrival: isNewArrival === 'true',
+      isLimited: isLimited === 'true',
+      
+      // Data Parsing Logic:
+      // Regular Price shob somoy save hobe
+      regularPrice: Number(regularPrice),
+      
+      // Jodi discount thake tobe discountPrice save hobe, nahole null
+      discountPrice: isDiscount === 'true' ? Number(discountPrice) : null,
+      
+    
+    };
 
+    // Database-e save kora
+    await Post.create(postData);
+
+    res.send('success');
+  } catch (error) {
+    console.error("Error creating post:", error);
+    res.redirect('/');
+  }
 });
-
 
 
 

@@ -5,76 +5,169 @@
  
 
     <!-- Hero Section -->
-    <section class="hero-gradient h-[80vh] flex items-center justify-center text-center text-white px-4">
-        <div class="max-w-3xl">
-            <h1 class="text-5xl md:text-7xl font-bold mb-6 tracking-tight">Redefine Your Style with Trendy World</h1>
-            <p class="text-lg md:text-xl text-gray-200 mb-8 font-light">Premium quality garments for those who value modern elegance.</p>
-            <a href="#shop" class="btn-red px-10 py-4 rounded-sm font-bold tracking-widest text-sm uppercase">
-                SHOP NOW
-            </a>
+    <div class="bg-black text-white text-[10px] py-3 text-center uppercase tracking-[3px] font-bold">
+        Free Delivery on orders over ৳3500 | Shipping Across Bangladesh
+    </div>
+
+
+
+    <section class="container mx-auto px-4 mt-6">
+        <div class="swiper mainHeroSwiper rounded-[40px] overflow-hidden shadow-lg">
+            <div class="swiper-wrapper">
+                <div class="swiper-slide bg-banner-1 p-16 md:p-32 text-white text-center flex flex-col items-center">
+                    <span class="royal-red font-bold tracking-[6px] uppercase text-[10px] mb-5">Season 2026</span>
+                    <h2 class="text-4xl md:text-7xl font-extrabold mb-10 brand-font uppercase">The Modern<br>Standard.</h2>
+                    <button class="bg-royal-red px-12 py-4 rounded-full font-bold text-xs uppercase tracking-widest"  onclick="window.location.href='/shop' ">Shop Now</button>
+                </div>
+                <div class="swiper-slide bg-banner-2 p-16 md:p-32 text-white text-center flex flex-col items-center">
+                    <span class="text-blue-400 font-bold tracking-[6px] uppercase text-[10px] mb-5">Just Landed</span>
+                    <h2 class="text-4xl md:text-7xl font-extrabold mb-10 brand-font uppercase">New<br>Arrivals</h2>
+                    <button class="bg-white text-black px-12 py-4 rounded-full font-bold text-xs uppercase tracking-widest" onclick="location.href='/new-arrivals' ">View Collection</button>
+                </div>
+                <div class="swiper-slide bg-banner-3 p-16 md:p-32 text-white text-center flex flex-col items-center">
+                    <span class="text-yellow-400 font-bold tracking-[6px] uppercase text-[10px] mb-5">Eid collection Limited Time</span>
+                    <h2 class="text-4xl md:text-7xl font-extrabold mb-10 brand-font uppercase">Flash<br>Sale</h2>
+                    <button class="bg-yellow-500 text-black px-12 py-4 rounded-full font-bold text-xs uppercase tracking-widest" onclick="window.location.href='/grab-deals' ">Grab Deals</button>
+                </div>
+                <div class="swiper-slide bg-banner-4 p-16 md:p-32 text-white text-center flex flex-col items-center">
+                    <span class="text-green-400 font-bold tracking-[6px] uppercase text-[10px] mb-5">Big Savings</span>
+                    <h2 class="text-4xl md:text-7xl font-extrabold mb-10 brand-font uppercase">UPTO 50%<br>DISCOUNT</h2>
+                    <button class="bg-royal-red px-12 py-4 rounded-full font-bold text-xs uppercase tracking-widest" onclick="window.location.href='/discounts' ">Shop Sale</button>
+                </div>
+                <div class="swiper-slide bg-banner-5 p-16 md:p-32 text-white text-center flex flex-col items-center">
+                    <span class="text-teal-300 font-bold tracking-[6px] uppercase text-[10px] mb-5">Exclusive Offer</span>
+                    <h2 class="text-4xl md:text-7xl font-extrabold mb-10 brand-font uppercase">FREE DELIVERY<br>SHOP OVER ৳3500</h2>
+                    <button class="bg-white text-teal-900 px-12 py-4 rounded-full font-bold text-xs uppercase tracking-widest">Buy Now</button>
+                </div>
+            </div>
+            <div class="swiper-pagination"></div>
         </div>
     </section>
 
-    <!-- Product Categories -->
-    <section class="py-20 bg-gray-50">
-    <div class="container mx-auto px-6">
-        <h2 class="text-3xl font-bold mb-12 text-center text-gray-800">Shop by Category</h2>
+   
+<section class="container mx-auto px-6 py-16">
+    <!-- Section Header -->
+    <div class="flex items-center mb-12">
+        <div class="w-2 h-10 bg-red-600 mr-4 rounded-full"></div>
+        <h3 class="text-3xl font-black brand-font uppercase italic tracking-tighter text-gray-900">
+            Our Items
+        </h3>
+    </div>
+    
+    <!-- Category Grid -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-8">
         
-        <div id="category-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <!-- ক্যাটাগরি কার্ডগুলো জাভাস্ক্রিপ্ট এর মাধ্যমে এখানে আসবে -->
+        <!-- Shirt -->
+        <div onclick="gotoCategory('/Shirt')" class="group flex flex-col items-center p-6 bg-white rounded-2xl shadow-sm border border-gray-100 hover:shadow-xl hover:border-red-500 transition-all duration-300 transform hover:-translate-y-2">
+            <div class="w-24 h-24 mb-4 flex items-center justify-center bg-gray-50 rounded-xl group-hover:bg-red-50 transition-colors">
+                <img src="https://i.ibb.co.com/GfpFfDKw/image-removebg-preview-2026-05-14-T142204-080.png" alt="Shirt" class="max-w-full max-h-full object-contain">
+            </div>
+            <span class="text-sm font-extrabold uppercase tracking-widest text-gray-800 group-hover:text-red-600">Shirt</span>
         </div>
+
+        <!-- T-Shirt -->
+        <div onclick="gotoCategory('/T-Shirt')" class="group flex flex-col items-center p-6 bg-white rounded-2xl shadow-sm border border-gray-100 hover:shadow-xl hover:border-red-500 transition-all duration-300 transform hover:-translate-y-2">
+            <div class="w-24 h-24 mb-4 flex items-center justify-center bg-gray-50 rounded-xl group-hover:bg-red-50 transition-colors">
+                <img src="https://i.ibb.co.com/tTzsBZbR/image-removebg-preview-2026-05-14-T142300-558.png" alt="T-Shirt" class="max-w-full max-h-full object-contain">
+            </div>
+            <span class="text-sm font-extrabold uppercase tracking-widest text-gray-800 group-hover:text-red-600">T-Shirt</span>
+        </div>
+
+        <!-- Drop Shoulder -->
+        <div  onclick="gotoCategory('/Drop Shoulder')" class="group flex flex-col items-center p-6 bg-white rounded-2xl shadow-sm border border-gray-100 hover:shadow-xl hover:border-red-500 transition-all duration-300 transform hover:-translate-y-2">
+            <div class="w-24 h-24 mb-4 flex items-center justify-center bg-gray-50 rounded-xl group-hover:bg-red-50 transition-colors">
+                <img src="https://i.ibb.co.com/DZFqc6k/image-removebg-preview-2026-05-14-T142500-350.png" alt="Drop Shoulder" class="max-w-full max-h-full object-contain">
+            </div>
+            <span class="text-sm font-extrabold uppercase tracking-widest text-gray-800 group-hover:text-red-600">Drop Shoulder</span>
+        </div>
+
+        <!-- Polo T-Shirt -->
+        <div  onclick="gotoCategory('/Polo T-Shirt')"class="group flex flex-col items-center p-6 bg-white rounded-2xl shadow-sm border border-gray-100 hover:shadow-xl hover:border-red-500 transition-all duration-300 transform hover:-translate-y-2">
+            <div class="w-24 h-24 mb-4 flex items-center justify-center bg-gray-50 rounded-xl group-hover:bg-red-50 transition-colors">
+                <img src="https://i.ibb.co.com/q31PWN7p/image-removebg-preview-2026-05-14-T142418-958.png" alt="Polo T-Shirt" class="max-w-full max-h-full object-contain">
+            </div>
+            <span class="text-sm font-extrabold uppercase tracking-widest text-gray-800 group-hover:text-red-600">Polo T-Shirt</span>
+        </div>
+        
+
+         <!-- Punjabi -->
+        <div onclick="gotoCategory('/Jerssy')" class="group flex flex-col items-center p-6 bg-white rounded-2xl shadow-sm border border-gray-100 hover:shadow-xl hover:border-red-500 transition-all duration-300 transform hover:-translate-y-2">
+            <div class="w-24 h-24 mb-4 flex items-center justify-center bg-gray-50 rounded-xl group-hover:bg-red-50 transition-colors">
+                <img src="https://i.ibb.co.com/1YmNGVd4/image-removebg-preview-2026-05-14-T143931-657.png" alt="Punjabi" class="max-w-full max-h-full object-contain">
+            </div>
+            <span class="text-sm font-extrabold uppercase tracking-widest text-gray-800 group-hover:text-red-600">Jerssy</span>
+        </div>
+        
+
+        <!-- Punjabi -->
+        <div onclick="gotoCategory('/Punjabi')" class="group flex flex-col items-center p-6 bg-white rounded-2xl shadow-sm border border-gray-100 hover:shadow-xl hover:border-red-500 transition-all duration-300 transform hover:-translate-y-2">
+            <div class="w-24 h-24 mb-4 flex items-center justify-center bg-gray-50 rounded-xl group-hover:bg-red-50 transition-colors">
+                <img src="https://i.ibb.co.com/fYNVf5gn/image-removebg-preview-2026-05-14-T142549-680.png" alt="Punjabi" class="max-w-full max-h-full object-contain">
+            </div>
+            <span class="text-sm font-extrabold uppercase tracking-widest text-gray-800 group-hover:text-red-600">Punjabi</span>
+        </div>
+
+        <!-- Jeans Pant -->
+        <div onclick="gotoCategory('/Jeans Pant')" class="group flex flex-col items-center p-6 bg-white rounded-2xl shadow-sm border border-gray-100 hover:shadow-xl hover:border-red-500 transition-all duration-300 transform hover:-translate-y-2">
+            <div class="w-24 h-24 mb-4 flex items-center justify-center bg-gray-50 rounded-xl group-hover:bg-red-50 transition-colors">
+                <img src="https://i.ibb.co.com/m5NTntYh/image-removebg-preview-2026-05-14-T142625-950.png" alt="Jeans Pant" class="max-w-full max-h-full object-contain">
+            </div>
+            <span class="text-sm font-extrabold uppercase tracking-widest text-gray-800 group-hover:text-red-600">Jeans Pant</span>
+        </div>
+
+        <!-- Gavadi Pant -->
+        <div onclick="gotoCategory('/Gabardine Pant')" class="group flex flex-col items-center p-6 bg-white rounded-2xl shadow-sm border border-gray-100 hover:shadow-xl hover:border-red-500 transition-all duration-300 transform hover:-translate-y-2">
+            <div class="w-24 h-24 mb-4 flex items-center justify-center bg-gray-50 rounded-xl group-hover:bg-red-50 transition-colors">
+                <img src="https://i.ibb.co.com/TD1pyNZB/image-removebg-preview-2026-05-14-T142718-867.png" alt="Gavadi Pant" class="max-w-full max-h-full object-contain">
+            </div>
+            <span class="text-sm font-extrabold uppercase tracking-widest text-gray-800 group-hover:text-red-600">Gavadi Pant</span>
+        </div>
+
     </div>
 </section>
 
-<script>
-    // ১. ক্যাটাগরি ডাটা অ্যারে (এখানে আপনি আপনার পছন্দমতো লিঙ্ক যোগ করতে পারবেন)
-    const categories = [
-        {
-            name: "T-Shirts",
-            img: "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&q=80&w=1000",
-            link: "/category/t-shirts"
-        },
-        {
-            name: "Shirts",
-            img: "https://images.unsplash.com/photo-1596755094514-f87e34085b2c?auto=format&fit=crop&q=80&w=1000",
-            link: "/category/shirts"
-        },
-        {
-            name: "Panjabis",
-            img: "https://images.unsplash.com/photo-1515488764276-beab7607c1e6?auto=format&fit=crop&q=80&w=1000",
-            link: "/category/panjabis"
-        },
-        {
-            name: "Trousers",
-            img: "https://images.unsplash.com/photo-1624371414361-e6e8ea01c1e2?auto=format&fit=crop&q=80&w=1000",
-            link: "/category/trousers"
-        }
-    ];
+    <script>
+      // Swiper Initialize
+const swiper = new Swiper('.mainHeroSwiper', {
+  // Auto-slide functionality
+  autoplay: {
+    delay: 3000, // 3 second por por slide change hobe
+    disableOnInteraction: false, // User touch/click korle-o autoplay bondho hobe na
+  },
+  
+  // Smooth transition speed
+  speed: 800, 
 
-    const categoryContainer = document.getElementById('category-container');
+  // Pagination (dots) logic
+  pagination: {
+    el: '.swiper-pagination',
+    clickable: true,
+  },
 
-    // ২. অ্যারে লুপ করে HTML জেনারেট করা
-    categories.forEach(cat => {
-        categoryContainer.innerHTML += `
-            <a href="${cat.link}" class="category-card relative overflow-hidden group cursor-pointer h-80 block">
-                <img src="${cat.img}" alt="${cat.name}" 
-                    class="w-full h-full object-cover transition duration-700 group-hover:scale-110">
-                
-                <div class="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-all duration-300 flex items-center justify-center">
-                    <div class="text-center">
-                        <span class="text-white text-xl font-bold tracking-widest border-b-2 border-red-500 pb-1 uppercase transition-all duration-300 group-hover:px-4">
-                            ${cat.name}
-                        </span>
-                    </div>
-                </div>
-            </a>
-        `;
-    });
-</script>
+  // Loop enable kora hoyeche jate last slide er por abar prothom-ti ashe
+  loop: true,
 
+  // Smooth sliding effect-er jonno (optional)
+  effect: 'fade',
+  fadeEffect: {
+    crossFade: true
+  },
+});
+
+
+function gotoCategory(href){
+    window.location.href= '/category'+href
+}
+    </script>
+
+<style>
+    .group{
+        cursor: pointer;
+    }
+</style>
     <!-- Featured Products -->
 <%- include('partials/products') %>
 
-  
+
 <%- include('partials/footer') %>
 
