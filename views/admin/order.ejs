@@ -20,7 +20,7 @@
         <div class="overflow-y-auto pr-1 md:pr-2 custom-scrollbar" style="max-height: 800px;">
             <div class="grid grid-cols-1 gap-6">
                 <% if(orders.length > 0) { %>
-                    <% orders.forEach(order => { %>
+                    <% orders.reverse().forEach(order => { %>
                         <div class="bg-white rounded-3xl p-5 md:p-6 shadow-sm border border-slate-100 flex flex-col lg:flex-row items-stretch justify-between gap-6 hover:shadow-md transition duration-300">
                             
                             <!-- 👤 Customer & Order Meta Info -->

@@ -50,18 +50,24 @@
                         // Current order status format configuration
                         const activeStatus = order.status ? order.status.toLowerCase() : 'pending'; 
                         
-                        // Universal helper function to format timestamps nicely
+                        // ✅ বাংলাদেশ টাইমজোন (Asia/Dhaka) ফিক্সড ফাংশন
                         const formatTime = (dateObj) => {
                             if(!dateObj) return '';
                             return new Date(dateObj).toLocaleString('en-US', { 
-                                hour: 'numeric', minute: 'numeric', hour12: true,
-                                day: 'numeric', month: 'short', year: 'numeric' 
+                                timeZone: 'Asia/Dhaka',
+                                hour: 'numeric', 
+                                minute: 'numeric', 
+                                hour12: true,
+                                day: 'numeric', 
+                                month: 'short', 
+                                year: 'numeric' 
                             });
                         };
                     %>
 
                     <div class="relative pl-8 space-y-12 before:absolute before:inset-y-2 before:left-3 before:w-[2px] before:bg-gray-100">
                         
+                        <!-- Step 1: Order Placed -->
                         <div class="relative group">
                             <span class="absolute -left-8 top-0.5 w-6 h-6 rounded-full bg-green-500 border-4 border-white text-white flex items-center justify-center text-[9px] shadow-md z-10">
                                 <i class="fa-solid fa-check"></i>
@@ -75,9 +81,8 @@
                             </div>
                         </div>
 
-                        <% 
-                            const isConfirmed = ['confirmed', 'shipped', 'delivered'].includes(activeStatus);
-                        %>
+                        <!-- Step 2: Order Confirmed -->
+                        <% const isConfirmed = ['confirmed', 'shipped', 'delivered'].includes(activeStatus); %>
                         <div class="relative group">
                             <span class="absolute -left-8 top-0.5 w-6 h-6 rounded-full border-4 border-white flex items-center justify-center text-[9px] shadow-md z-10 <%= isConfirmed ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-400' %>">
                                 <i class="fa-solid <%= isConfirmed ? 'fa-check' : 'fa-circle-notch animate-spin' %>"></i>
@@ -93,9 +98,8 @@
                             </div>
                         </div>
 
-                        <% 
-                            const isShipped = ['shipped', 'delivered'].includes(activeStatus);
-                        %>
+                        <!-- Step 3: Shipped -->
+                        <% const isShipped = ['shipped', 'delivered'].includes(activeStatus); %>
                         <div class="relative group">
                             <span class="absolute -left-8 top-0.5 w-6 h-6 rounded-full border-4 border-white flex items-center justify-center text-[9px] shadow-md z-10 <%= isShipped ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-400' %>">
                                 <i class="fa-solid <%= isShipped ? 'fa-check' : 'fa-truck-fast' %>"></i>
@@ -111,9 +115,8 @@
                             </div>
                         </div>
 
-                        <% 
-                            const isDelivered = activeStatus === 'delivered';
-                        %>
+                        <!-- Step 4: Delivered -->
+                        <% const isDelivered = activeStatus === 'delivered'; %>
                         <div class="relative group">
                             <span class="absolute -left-8 top-0.5 w-6 h-6 rounded-full border-4 border-white flex items-center justify-center text-[9px] shadow-md z-10 <%= isDelivered ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-400' %>">
                                 <i class="fa-solid fa-house-chimney-user"></i>
