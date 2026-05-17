@@ -10,7 +10,10 @@ const postSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    
+    sizes: {
+        type: [String],
+        default: []
+    },
     // Discount Logic
     isDiscount: {
         type: Boolean,

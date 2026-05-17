@@ -91,6 +91,20 @@
                     <span class="text-green-600 font-semibold text-sm bg-green-50 px-2 py-1 rounded ml-2">In Stock</span>
                 </div>
 
+                <!-- 🏷️ 🌟 ONLY SHOW SIZES (ইউজার এখানে ক্লিক করবে না, শুধু দেখবে) -->
+                <% if (product.sizes && product.sizes.length > 0) { %>
+                    <div class="border-t pt-4">
+                        <h4 class="text-xs font-black text-gray-400 uppercase tracking-widest mb-2.5">Available Sizes:</h4>
+                        <div class="flex flex-wrap gap-1.5">
+                            <% product.sizes.forEach(size => { %>
+                                <span class="px-3.5 py-1.5 bg-gray-100 border border-gray-200 text-xs font-bold rounded-lg text-gray-800 select-none uppercase">
+                                    <%= size %>
+                                </span>
+                            <% }) %>
+                        </div>
+                    </div>
+                <% } %>
+
                 <div class="border-t border-b py-6 text-gray-600 leading-relaxed">
                     <h4 class="text-sm font-bold text-gray-900 uppercase mb-2">Description</h4>
                     <p class="whitespace-pre-line text-sm text-gray-600">
@@ -100,7 +114,7 @@
 
                 <div class="flex flex-col sm:flex-row gap-4 pt-4">
                     <button
-                        onclick="addToCart('<%= product._id %>', '<%= product.title.replace(/'/g, "\\'") %>', '<%= activePrice %>', '<%= product.imgUrl %>')"
+                        onclick="addToCart('<%= product._id %>', '<%= product.title.replace(/'/g, "\\'") %>', '<%= activePrice %>', '<%= product.imgUrl %>', '<%= product.category %>')"
                         class="flex-1 bg-black text-white py-4 px-8 rounded-full font-bold uppercase tracking-widest hover:bg-gray-800 transition shadow-lg flex items-center justify-center gap-2 cursor-pointer">
                         <i class="fa-solid fa-cart-plus"></i> Add to Cart
                     </button>
@@ -131,96 +145,53 @@
 </style>
 
 <script>
-    // Global image array parsed directly from backend EJS variables securely
     const images = <%- JSON.stringify(imageList) %>;
     let globalActiveIndex = 0;
 
-    // Core central control interface for routing gallery views
     function switchMainImage(imageUrl, index) {
         globalActiveIndex = index;
-        
-        // 1. Update Core Image DOM Container
         const mainDisplay = document.getElementById('mainProductDisplayImage');
         mainDisplay.src = imageUrl;
 
-        // 2. Adjust Mobile Page Number Counter Text Node
         const indicator = document.getElementById('currentIndexText');
         if(indicator) indicator.innerText = index + 1;
 
-        // 3. Clear existing active highlighting borders everywhere
         document.querySelectorAll('.thumbnail-box').forEach(box => {
             box.classList.remove('border-black', 'ring-2', 'ring-gray-100', 'shadow-sm');
             box.classList.add('border-gray-200');
         });
 
-        // 4. Highlight current index active target box
         const targetBox = document.querySelector(`.thumbnail-box[data-index="${index}"]`);
         if (targetBox) {
             targetBox.classList.remove('border-gray-200');
             targetBox.classList.add('border-black', 'ring-2', 'ring-gray-100', 'shadow-sm');
-            
-            // Auto scroll current thumbnail item target into active focus container grid view smoothly
             targetBox.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
         }
     }
 
     // INTERACTIVE GESTURE SYSTEM CODE BLOCK
     const viewPortWrapper = document.getElementById('mainImageWrapper');
-    let startX = 0;
-    let endX = 0;
-    let isDragging = false;
+    let startX = 0; let endX = 0; let isDragging = false;
 
-    // A. MOBILE TOUCH SLIDER HANDLERS
-    viewPortWrapper.addEventListener('touchstart', (e) => {
-        startX = e.touches[0].clientX;
-    }, { passive: true });
+    viewPortWrapper.addEventListener('touchstart', (e) => { startX = e.touches[0].clientX; }, { passive: true });
+    viewPortWrapper.addEventListener('touchend', (e) => { endX = e.changedTouches[0].clientX; handleSwipeGestureDetection(); }, { passive: true });
+    viewPortWrapper.addEventListener('mousedown', (e) => { startX = e.clientX; isDragging = true; });
+    viewPortWrapper.addEventListener('mouseup', (e) => { if (!isDragging) return; endX = e.clientX; isDragging = false; handleSwipeGestureDetection(); });
+    viewPortWrapper.addEventListener('mouseleave', () => { isDragging = false; });
 
-    viewPortWrapper.addEventListener('touchend', (e) => {
-        endX = e.changedTouches[0].clientX;
-        handleSwipeGestureDetection();
-    }, { passive: true });
-
-    // B. DESKTOP MOUSE CAROUSEL SWIPE HANDLERS 
-    viewPortWrapper.addEventListener('mousedown', (e) => {
-        startX = e.clientX;
-        isDragging = true;
-    });
-
-    viewPortWrapper.addEventListener('mouseup', (e) => {
-        if (!isDragging) return;
-        endX = e.clientX;
-        isDragging = false;
-        handleSwipeGestureDetection();
-    });
-
-    viewPortWrapper.addEventListener('mouseleave', () => {
-        isDragging = false;
-    });
-
-    // Central core swipe direction evaluator function logic
     function handleSwipeGestureDetection() {
-        const threshold = 50; // minimum required slider drag dimension pixels
-        const difference = startX - endX;
-
+        const threshold = 50; const difference = startX - endX;
         if (Math.abs(difference) > threshold) {
             if (difference > 0) {
-                // Dragged Left -> Load NEXT Image
-                if (globalActiveIndex < images.length - 1) {
-                    globalActiveIndex++;
-                    switchMainImage(images[globalActiveIndex], globalActiveIndex);
-                }
+                if (globalActiveIndex < images.length - 1) { globalActiveIndex++; switchMainImage(images[globalActiveIndex], globalActiveIndex); }
             } else {
-                // Dragged Right -> Load PREVIOUS Image
-                if (globalActiveIndex > 0) {
-                    globalActiveIndex--;
-                    switchMainImage(images[globalActiveIndex], globalActiveIndex);
-                }
+                if (globalActiveIndex > 0) { globalActiveIndex--; switchMainImage(images[globalActiveIndex], globalActiveIndex); }
             }
         }
     }
 
-    // Local storage cart injector function
-    function addToCart(id, title, regularPrice, img) {
+    // 📦 Local storage cart injector function
+    function addToCart(id, title, regularPrice, img, category) {
         let cart = JSON.parse(localStorage.getItem('cart')) || [];
         const existingItem = cart.find(item => item.id === id);
 
@@ -234,7 +205,20 @@
                 confirmButtonColor: '#000000'
             });
         } else {
-            cart.push({ id, title, regularPrice, img, quantity: 1 });
+            // ডাটাবেজের 'sizes' অ্যারেটি সরাসরি কার্ট মেমরিতে পুশ করে দেওয়া হচ্ছে 
+            const availableSizes = <%- product.sizes && product.sizes.length > 0 ? JSON.stringify(product.sizes) : '[]' %>;
+            
+            cart.push({ 
+                id, 
+                title, 
+                regularPrice, 
+                img, 
+                category,
+                sizes: availableSizes, // চেকআউটে সাইজ জেনারেট করার জন্য এই ডাটা পাস করতে হবে
+                selectedSize: '',      // ইউজার চেকআউটে গিয়ে এটা সিলেক্ট করবে
+                quantity: 1 
+            });
+
             Swal.fire({
                 title: 'Success!',
                 text: "Product added to your shopping cart.",

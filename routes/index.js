@@ -135,6 +135,7 @@ router.post('/add',isAdmin, async function (req, res) {
             title,
             content,
             category,
+            sizes,
             isDiscount,
             regularPrice, // Main price ekhon eta
             discountPrice,
@@ -147,10 +148,19 @@ router.post('/add',isAdmin, async function (req, res) {
             imgUrl5
         } = req.body;
 
+
+
+let sizeArray = [];
+        if (sizes && sizes.trim() !== "") {
+            sizeArray = sizes.split(',').map(size => size.trim().toUpperCase());
+            // map(size => size.trim()) করার কারণে স্পেস থাকলেও তা রিমুভ হয়ে যাবে (যেমন: "M , L" হয়ে যাবে ["M", "L"])
+        }
+
         const postData = {
             title,
             content,
             category,
+            sizes: sizeArray,
             imgUrl,
             imgUrl2,
             imgUrl3,
@@ -231,13 +241,23 @@ router.get('/checkout', (req, res) => {
 // Ekebare shohoj 6-digit random number generator
 // ১. Order Place Route (Updated Success Response)
 router.post('/place-order', async (req, res) => {
-    connectDB()
+    connectDB();
     try {
         const { items, totalAmount, name, phone, address } = req.body;
 
+        // 🔄 ফ্রন্টএন্ডের ডাটাকে স্কিমার স্ট্রাকচার অনুযায়ী ম্যাপ করা হচ্ছে
+        const mappedItems = items.map(item => ({
+            productId: item.id,            // ফ্রন্টএন্ডের 'id' -> ব্যাকএন্ডের 'productId'
+            title: item.title,
+            price: parseFloat(item.regularPrice) || 0,
+            quantity: item.quantity,
+            img: item.img,
+            size: item.selectedSize || ''  // ফ্রন্টএন্ডের 'selectedSize' -> ব্যাকএন্ডের 'size'
+        }));
+
         const newOrder = new Order({
             OrderId: Math.floor(100000 + Math.random() * 900000).toString(),
-            items: items,
+            items: mappedItems,            // ম্যাপ করা আইটেমগুলো এখানে বসবে
             totalAmount: totalAmount,
             customerInfo: { name, phone, address }
         });
@@ -251,7 +271,6 @@ router.post('/place-order', async (req, res) => {
         res.status(500).json({ success: false, message: "Order failed!" });
     }
 });
-
 // ২. New Route: Success Page Render (URL: /order-success/:id)
 router.get('/order-success/:id', async (req, res) => {
     try {
@@ -435,7 +454,7 @@ router.get('/edit/:id',isAdmin, async (req, res) => {
     }
 });
 
-router.post('/edit/:id',isAdmin, async (req, res) => {
+router.post('/edit/:id', isAdmin, async (req, res) => {
     try {
         const productId = req.params.id;
         
@@ -454,17 +473,35 @@ router.post('/edit/:id',isAdmin, async (req, res) => {
             // String gulor bhetor jodi bhat_তি space thake sheta kete clean kori
             if (typeof formValue === 'string') formValue = formValue.trim();
 
-            // Boolean Toggles Handler (isDiscount, isNewArrival, isLimited hole true/false-e convert hobe)
+            // Boolean Toggles Handler
             if (formValue === 'true' || formValue === 'false') {
                 formValue = (formValue === 'true');
             }
 
-            // Price / Numbers Handler (regularPrice ba discountPrice hole sonkhya-te convert hobe)
+            // Price / Numbers Handler
             if (key === 'regularPrice' || key === 'discountPrice') {
                 formValue = formValue ? Number(formValue) : null;
             }
 
-            // 🎯 Main Logic: Form-er data jodi Database-er data theke alada hoy, shudhu shetai add hobe
+            // ⚠️ NEW: Product Size Handler (আগের ও নতুন সব প্রোডাক্টের সাইজ হ্যান্ডেল করবে)
+            if (key === 'sizes') {
+                let newSizesArray = [];
+                if (typeof formValue === 'string' && formValue.trim() !== "") {
+                    // কমা দিয়ে আলাদা করে ক্লিন অ্যারে তৈরি
+                    newSizesArray = formValue.split(',').map(s => s.trim().toUpperCase());
+                }
+
+                // ডাটাবেজের অ্যারে আর ফর্ম থেকে আসা অ্যারে ম্যাচ করে কিনা চেক করা
+                const existingSizes = existingProduct.sizes || [];
+                const isSizeChanged = JSON.stringify(newSizesArray) !== JSON.stringify(existingSizes);
+
+                if (isSizeChanged) {
+                    updateFields.sizes = newSizesArray;
+                }
+                continue; // এই ফিল্ডের কাজ শেষ, তাই লুপের বাকি অংশ স্কিপ করবে
+            }
+
+            // 🎯 Main Logic: Form-er data jodi Database-er data theke alada hoy
             if (formValue !== existingProduct[key]) {
                 updateFields[key] = formValue;
             }
@@ -477,7 +514,6 @@ router.post('/edit/:id',isAdmin, async (req, res) => {
 
         // 4. Kono data change na hole alada kore database hit korar dorkar nai
         if (Object.keys(updateFields).length === 0) {
-            console.log("Kono data change kora hoyni!");
             return res.redirect(`/product/${productId}`);
         }
 

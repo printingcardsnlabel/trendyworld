@@ -26,8 +26,9 @@
             <div class="bg-gray-50 p-6 rounded-xl border flex flex-col justify-between">
                 <div>
                     <h4 class="text-lg font-bold mb-4">Order Summary</h4>
-                    <div id="checkout-items" class="space-y-3 mb-4 max-h-[220px] overflow-y-auto pr-1">
-                        </div>
+                    <!-- মেমোরি এবং স্ক্রল অপ্টিমাইজেশনের জন্য max-h কিছুটা বাড়ানো হয়েছে সাইজ ড্রপডাউনের সুবিধার্থে -->
+                    <div id="checkout-items" class="space-y-4 mb-4 max-h-[280px] overflow-y-auto pr-1">
+                    </div>
                 </div>
                 
                 <div class="border-t pt-4 space-y-2">
@@ -67,16 +68,39 @@
 
         let subtotal = 0;
         
-        container.innerHTML = cart.map(item => {
+        container.innerHTML = cart.map((item, index) => {
             const rawPrice = item.regularPrice ? item.regularPrice.toString() : "0";
             const itemPrice = parseFloat(rawPrice.replace(/[^0-9.-]+/g, "")) || 0;
             const itemTotal = itemPrice * item.quantity;
             subtotal += itemTotal;
 
+            // 🏷️ প্রোডাক্টের জন্য নির্দিষ্ট সাইজ অপশনগুলো তৈরি করা হচ্ছে
+            let sizeSelectHtml = '';
+            if (item.sizes && item.sizes.length > 0) {
+                sizeSelectHtml = `
+                    <div class="mt-1">
+                        <select onchange="updateCartItemSize(${index}, this.value)" class="size-dropdown border text-xs rounded px-2 py-1 bg-white outline-none focus:border-black font-medium text-gray-700">
+                            <option value="">-- Choose Size * --</option>
+                            ${item.sizes.map(size => `
+                                <option value="${size}" ${item.selectedSize === size ? 'selected' : ''}>Size: ${size}</option>
+                            `).join('')}
+                        </select>
+                    </div>
+                `;
+            } else {
+                sizeSelectHtml = `<span class="text-xs text-gray-400 block mt-1">Free Size</span>`;
+            }
+
             return `
-                <div class="flex justify-between text-sm border-b pb-2 italic text-gray-600 items-center gap-2">
-                    <span class="line-clamp-1">${item.title} <strong class="text-black font-semibold">x ${item.quantity}</strong></span>
-                    <span class="whitespace-nowrap">৳${itemTotal.toFixed(2)}</span>
+                <div class="border-b pb-3 text-sm text-gray-600">
+                    <div class="flex justify-between items-start gap-2">
+                        <div class="flex-1">
+                            <span class="line-clamp-1 font-medium text-gray-800">${item.title}</span>
+                            <strong class="text-black font-semibold text-xs">Qty: ${item.quantity}</strong>
+                            ${sizeSelectHtml}
+                        </div>
+                        <span class="whitespace-nowrap font-semibold text-gray-900 mt-0.5">৳${itemTotal.toFixed(2)}</span>
+                    </div>
                 </div>
             `;
         }).join('');
@@ -89,6 +113,15 @@
         totalEl.innerText = '৳' + globalFinalTotal.toFixed(2);
     }
 
+    // 💾 ড্রপডাউন চেঞ্জ হলে যেন লোকাল স্টোরেজেও সিলেক্টেড সাইজ সেভ হয়ে যায়
+    function updateCartItemSize(index, newSize) {
+        let cart = JSON.parse(localStorage.getItem('cart')) || [];
+        if (cart[index]) {
+            cart[index].selectedSize = newSize;
+            localStorage.setItem('cart', JSON.stringify(cart));
+        }
+    }
+
     document.getElementById('order-form').addEventListener('submit', async (e) => {
         e.preventDefault();
         
@@ -98,16 +131,29 @@
             return;
         }
         
+        // 🚨 🔍 সাইজ ভ্যালিডেশন চেকার লুপ
+        for (let i = 0; i < cart.length; i++) {
+            // যদি প্রোডাক্টের সাইজ অপশন থাকে কিন্তু ইউজার সাইজ সিলেক্ট না করে থাকে
+            if (cart[i].sizes && cart[i].sizes.length > 0 && !cart[i].selectedSize) {
+                Swal.fire({
+                    title: 'Size Required!',
+                    text: `দয়া করে "${cart[i].title}" প্রোডাক্টটির সাইজ সিলেক্ট করুন!`,
+                    icon: 'warning',
+                    confirmButtonColor: '#000000'
+                });
+                return; // এখানেই কোড এক্সিকিউশন স্টপ করে দেবে, রিকোয়েস্ট সার্ভারে যাবে না
+            }
+        }
+        
         const orderData = {
             name: document.getElementById('name').value,
             phone: document.getElementById('phone').value,
             address: document.getElementById('address').value,
-            items: cart,
+            items: cart, // আপডেটেড selectedSize সহ পুরো কার্ট অবজেক্ট ব্যাকএন্ডে সাবমিট হবে
             totalAmount: globalFinalTotal
         };
 
         try {
-            // Smooth processing loading spinner popup
             Swal.fire({
                 title: 'Processing Order...',
                 text: 'Please wait while we secure your booking.',
@@ -131,10 +177,8 @@
                     confirmButtonText: 'View Order ID',
                     confirmButtonColor: '#000000'
                 }).then(() => {
-                    localStorage.removeItem('cart'); // Clears the cart memory immediately
-                    window.dispatchEvent(new CustomEvent('cartUpdated')); // Synchronize navbar badge triggers
-                    
-                    // FIXED DYNAMIC REDIRECT: Backend parsing customOrderId-te direct niye jabe
+                    localStorage.removeItem('cart');
+                    window.dispatchEvent(new CustomEvent('cartUpdated'));
                     window.location.href = `/order-success/${result.customOrderId}`;
                 });
             } else {

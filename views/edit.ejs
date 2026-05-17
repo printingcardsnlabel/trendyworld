@@ -75,7 +75,15 @@
                         class="w-full px-4 py-2 text-sm border border-red-200 rounded-lg outline-none focus:border-red-600 bg-red-50 font-medium" <%= product.isDiscount ? 'required' : '' %>>
                 </div>
             </div>
-
+<!-- Sizes Edit Field -->
+<div class="mb-4">
+    <label class="block text-sm font-bold text-gray-700 mb-1">Available Sizes (Comma Separated)</label>
+    <input type="text" name="sizes" 
+        value="<%= product.sizes && product.sizes.length > 0 ? product.sizes.join(', ') : '' %>" 
+        placeholder="e.g. M, L, XL, XXL or 30, 32, 34" 
+        class="w-full px-4 py-2.5 border border-gray-200 rounded-lg outline-none focus:border-gray-900 font-medium text-sm transition shadow-sm">
+    <p class="text-xs text-gray-400 mt-1">আগের প্রোডাক্টগুলোতে সাইজ না থাকলে এখানে কমা দিয়ে লিখে আপডেট দিন (যেমন: M, L, XL)</p>
+</div>
             <!-- Image Asset Link Elements Grid -->
             <div class="space-y-3.5">
                 <label class="block text-xs font-black text-gray-700 uppercase tracking-widest italic">Image Gallery</label>
