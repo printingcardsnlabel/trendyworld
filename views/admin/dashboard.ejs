@@ -4,7 +4,7 @@
     <div class="container mx-auto px-6">
         
         <!-- Top Bar -->
-        <div class="flex flex-col md:flex-row md:items-center justify-between mb-10 gap-4">
+        <div class="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
             <div>
                 <h1 class="text-3xl font-extrabold text-gray-900">Admin Dashboard</h1>
                 <p class="text-gray-500">Manage your store products and inventory</p>
@@ -12,6 +12,27 @@
             <a href="/add" class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-bold flex items-center justify-center gap-2 transition shadow-lg">
                 <i class="fa-solid fa-plus"></i> Add New Product
             </a>
+        </div>
+
+        <!-- 🔍 DYNAMIC SEARCH BAR (Action target fixed to /admin) -->
+        <div class="mb-8 max-w-md">
+            <form action="/auntheticaednannuadmin" method="GET" class="flex gap-2">
+                <div class="relative flex-1">
+                    <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-400">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                    </span>
+                    <input type="text" name="search" value="<%= searchQuery %>" placeholder="Search product by name..." 
+                        class="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-lg focus:outline-none focus:border-gray-900 font-medium text-sm transition shadow-sm">
+                </div>
+                <button type="submit" class="bg-gray-900 hover:bg-gray-800 text-white px-5 py-2.5 rounded-lg font-bold text-sm transition cursor-pointer">
+                    Search
+                </button>
+                <% if(searchQuery) { %>
+                    <a href="/admin" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2.5 rounded-lg font-bold text-sm flex items-center justify-center transition" title="Clear Search">
+                        Reset
+                    </a>
+                <% } %>
+            </form>
         </div>
 
         <!-- Product Table -->
@@ -51,11 +72,14 @@
                                     <a href="/product/<%= product._id %>" class="p-2 text-blue-500 hover:bg-blue-50 rounded-lg transition" title="View">
                                         <i class="fa-regular fa-eye"></i>
                                     </a>
+                                    <!-- Edit Item -->
+                                    <a href="/edit/<%= product._id %>" class="p-2 text-blue-500 hover:bg-blue-50 rounded-lg transition" title="Edit">
+                                        <i class="fa fa-pencil"></i>
+                                    </a>
                                     <!-- Delete Item -->
-                                    <button onclick="confirmDelete('/admin/delete/<%= product._id %>')" 
-   class="p-2 text-red-500 hover:bg-red-50 rounded-lg transition" title="Delete">
-    <i class="fa-regular fa-trash-can"></i>
-</button>
+                                    <button onclick="confirmDelete('/admin/delete/<%= product._id %>')" class="p-2 text-red-500 hover:bg-red-50 rounded-lg transition cursor-pointer" title="Delete">
+                                        <i class="fa-regular fa-trash-can"></i>
+                                    </button>
                                 </div>
                             </td>
                         </tr>
@@ -65,7 +89,7 @@
                             <tr>
                                 <td colspan="5" class="px-6 py-20 text-center text-gray-400">
                                     <i class="fa-solid fa-box-open text-4xl mb-3 block"></i>
-                                    No products found in database.
+                                    <%= searchQuery ? `No products match "${searchQuery}"` : 'No products found in database.' %>
                                 </td>
                             </tr>
                         <% } %>
@@ -77,26 +101,25 @@
         <!-- Quick Stats Footer -->
         <div class="mt-8 grid grid-cols-1 sm:grid-cols-3 gap-6">
             <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                <p class="text-sm text-gray-500 mb-1">Total Products</p>
+                <p class="text-sm text-gray-500 mb-1">Total Products Displayed</p>
                 <h3 class="text-2xl font-bold text-gray-900"><%= products.length %></h3>
             </div>
             <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
                 <p class="text-sm text-gray-500 mb-1">Store Status</p>
                 <h3 class="text-2xl font-bold text-green-600">Active</h3>
             </div>
-            <a href="/admin/orders" class="bg-orange-500 p-6 rounded-xl 
-            shadow-sm border border-gray-100">
-               
+            <a href="/admin/orders" class="bg-orange-500 p-6 rounded-xl shadow-sm border border-gray-100 block">
                 <h1 class="text-2xl font-bold text-white">See Orders</h1>
             </a>
         </div>
     </div>
 </div>
+
 <script>
     function confirmDelete(deleteUrl) {
         Swal.fire({
             title: 'আপনি কি নিশ্চিত?',
-            text: "একবার ডিলিট করলে এটি আর ফিরে পাওয়া যাবে না!",
+            text: "একবার ডিলিট করলে এটি আর ফিরে পাওয়া যাবে না!",
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#d33',
@@ -106,7 +129,6 @@
             reverseButtons: true
         }).then((result) => {
             if (result.isConfirmed) {
-                // ইউজার কনফার্ম করলে ডিলিট রাউটে রিডাইরেক্ট করবে
                 window.location.href = deleteUrl;
             }
         })

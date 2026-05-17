@@ -1,0 +1,250 @@
+<%- include('partials/headr') %>
+
+<!-- ⚙️ CONFIGURATION SETTING: Dynamic Client-Side Pagination Variable -->
+<script>
+    const productsPerPage = 8; // 👈 Ekhane 4, 8, 12, 20 ja icche set korun, automatic pagination control hobe
+</script>
+
+<div class="w-full min-h-screen bg-[#fafafa] pb-20">
+    
+    <!-- Header Search Bar Control Wrapper -->
+    <div class="bg-black text-white py-10 mb-8 shadow-md">
+        <div class="container mx-auto px-4 max-w-4xl">
+            <form action="/search" method="GET" class="flex flex-col sm:flex-row items-center gap-3 bg-neutral-900 p-2.5 rounded border border-neutral-800 shadow-lg">
+                
+                <!-- Category Select Filter Dropdown -->
+                <div class="w-full sm:w-1/4 relative">
+                    <select name="category" 
+                            class="w-full bg-black text-white text-xs font-semibold tracking-wider uppercase py-3.5 px-3 rounded border border-neutral-700 focus:outline-none focus:border-red-600 appearance-none cursor-pointer">
+                        <option value="all" <%= currentCategory === 'all' || !currentCategory ? 'selected' : '' %>>All Categories</option>
+                        <% categories.forEach(cat => { %>
+                            <option value="<%= cat %>" <%= currentCategory === cat ? 'selected' : '' %>><%= cat %></option>
+                        <% }) %>
+                    </select>
+                    <i class="fa-solid fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 text-[10px] pointer-events-none"></i>
+                </div>
+
+                <!-- Text Query Search Input Field -->
+                <div class="w-full sm:flex-1 relative">
+                    <input type="text" name="q" value="<%= currentQuery %>" placeholder="Search by product name..." 
+                           class="w-full bg-black text-white text-xs font-medium py-3.5 pl-4 pr-10 rounded border border-neutral-700 focus:outline-none focus:border-red-600 placeholder-neutral-500 tracking-wide uppercase">
+                    <% if (currentQuery) { %>
+                        <a href="/search?category=<%= currentCategory %>" class="absolute right-10 top-1/2 -translate-y-1/2 text-neutral-500 hover:text-white transition text-xs">
+                            <i class="fa-solid fa-xmark"></i>
+                        </a>
+                    <% } %>
+                    <i class="fa-solid fa-magnifying-glass absolute right-4 top-1/2 -translate-y-1/2 text-neutral-400 text-xs pointer-events-none"></i>
+                </div>
+
+                <!-- Search Action Trigger Button -->
+                <button type="submit" class="w-full sm:w-auto bg-red-600 hover:bg-red-700 text-white font-bold text-xs uppercase tracking-widest py-3.5 px-8 rounded transition duration-200 cursor-pointer">
+                    Search
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Main Content Search Catalog Segment -->
+    <main class="container mx-auto px-4">
+        
+        <!-- Search Meta Result Header Labels -->
+        <div class="mb-6 pb-3 border-b border-gray-200 flex items-center justify-between">
+            <h3 class="text-gray-600 text-xs sm:text-sm font-medium uppercase tracking-wider">
+                <% if (currentQuery || (currentCategory && currentCategory !== 'all')) { %>
+                    Results: <span class="text-black font-bold"><%= posts.length %></span> items match
+                <% } else { %>
+                    Catalog: <span class="text-black font-bold"><%= posts.length %></span> items available
+                <% } %>
+            </h3>
+            <span class="text-[9px] text-gray-400 font-mono hidden sm:block">INDEX_OK</span>
+        </div>
+
+        <% if (posts.length === 0) { %>
+            <!-- Clean Empty Fallback Framework Container UI -->
+            <div class="text-center py-16 bg-white rounded border border-gray-100 shadow-xs max-w-sm mx-auto mt-8">
+                <div class="text-neutral-300 mb-3">
+                    <i class="fa-solid fa-box-open text-4xl"></i>
+                </div>
+                <h4 class="text-base font-bold text-gray-800">No products found</h4>
+                <p class="text-gray-400 text-xs mt-1.5 px-6">Try re-checking keywords or setting category filters to all.</p>
+                <a href="/search" class="mt-5 inline-block bg-black text-white text-[10px] font-bold uppercase tracking-wider py-2 px-5 rounded hover:bg-red-600 transition">Clear Filters</a>
+            </div>
+        <% } else { %>
+            
+            <!-- Standard Unified Flexible Target CSS Production Grid -->
+            <div id="search-product-grid" class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
+                <!-- Inner Product Cards Target Injection Container Pipeline via Javascript -->
+            </div>
+
+            <!-- Optimized Smooth Paginated Control Interface Handler -->
+            <div id="load-more-container" class="mt-12 flex justify-center hidden">
+                <button id="load-more-btn" onclick="handleLoadMoreClick()" class="bg-black hover:bg-red-600 text-white text-[10px] font-bold uppercase tracking-widest py-3.5 px-10 rounded-full transition-all duration-300 shadow flex items-center justify-center gap-2 cursor-pointer min-w-[180px]">
+                    <span id="btn-text">Load More</span>
+                    <span id="btn-icon"><i class="fa-solid fa-chevron-down text-[9px]"></i></span>
+                </button>
+            </div>
+        <% } %>
+    </main>
+</div>
+
+<script>
+    // Server Payload Handling Mapping Array Data Stream
+    const rawDataPayload = <%- JSON.stringify(posts) %>;
+    const productGrid = document.getElementById('search-product-grid');
+    const loadMoreContainer = document.getElementById('load-more-container');
+    const loadMoreBtn = document.getElementById('load-more-btn');
+    const btnText = document.getElementById('btn-text');
+    const btnIcon = document.getElementById('btn-icon');
+
+    // Runtime Pointer Indices Tracking Allocations
+    let currentIndex = 0;
+
+    // Minimalist HTML Template Compiler Mapping Object Keys Securely
+    function compileCardMarkup(product) {
+        const hasDiscount = product.isDiscount === true || product.isDiscount === 'true';
+        const displayPrice = hasDiscount ? product.discountPrice : product.regularPrice;
+        const sanitizedTitle = product.title.replace(/'/g, "\\'");
+
+        return `
+            <div class="bg-white border border-gray-200 rounded-xl p-2 sm:p-3 hover:shadow-sm transition-all duration-300 flex flex-col justify-between opacity-0 translate-y-2 card-fade-in">
+                
+                <!-- Secure Image Direct Product Module Link -->
+                <div class="relative aspect-[3/4] overflow-hidden bg-gray-50 rounded-lg mb-3 group cursor-pointer">
+                    <a href="/product/${product._id}" class="block w-full h-full">
+                        <img src="${product.imgUrl}" alt="${product.title}" 
+                             class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105">
+                    </a>
+                    
+                    <!-- Meta Labels Badges Absolute Wrapper -->
+                    <div class="absolute top-2 left-2 flex flex-col gap-1 pointer-events-none">
+                        <span class="bg-white/90 backdrop-blur-xs px-2 py-0.5 rounded text-[8px] font-bold uppercase tracking-tight text-gray-900 shadow-xs">
+                            ${product.category}
+                        </span>
+                        ${hasDiscount ? `
+                            <span class="bg-red-600 text-white px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-tight shadow-xs">
+                                SALE
+                            </span>
+                        ` : ''}
+                    </div>
+                </div>
+
+                <!-- Product Descriptive Node Metadata Elements Container -->
+                <div class="flex-grow flex flex-col justify-between px-0.5">
+                    <div>
+                        <a href="/product/${product._id}" class="block">
+                            <h3 class="text-xs sm:text-sm font-bold text-gray-800 hover:text-red-600 transition-colors line-clamp-2 leading-tight tracking-tight min-h-[32px] sm:min-h-[40px]">
+                                ${product.title}
+                            </h3>
+                        </a>
+                        
+                        <!-- Real-time Calculations Currency Node Structure -->
+                        <div class="flex items-baseline gap-1.5 mt-1">
+                            <p class="text-sm sm:text-base font-black text-gray-900">
+                                ৳${Number(displayPrice).toLocaleString()}
+                            </p>
+                            ${hasDiscount ? `
+                                <p class="text-[10px] sm:text-xs text-gray-400 line-through">
+                                    ৳${Number(product.regularPrice).toLocaleString()}
+                                </p>
+                            ` : ''}
+                        </div>
+                    </div>
+
+                    <!-- Direct Minimal Bottom CTA Layout Button Operation Trigger -->
+                    <button onclick="addToCart('${product._id}', '${sanitizedTitle}', '${displayPrice}', '${product.imgUrl}')" 
+                            class="w-full mt-3 bg-neutral-900 hover:bg-red-600 text-white py-2 rounded text-[9px] font-bold uppercase tracking-wider transition-colors duration-200 flex items-center justify-center gap-1.5 cursor-pointer">
+                        <i class="fa-solid fa-cart-plus text-[9px]"></i> Add To Cart
+                    </button>
+                </div>
+
+            </div>
+        `;
+    }
+
+    // Dynamic Pagination Logic Core Pipeline Array Slicer
+    function appendNextBatchOfCards() {
+        if (!productGrid) return;
+
+        const nextSlice = rawDataPayload.slice(currentIndex, currentIndex + productsPerPage);
+        const finalGeneratedHtml = nextSlice.map(item => compileCardMarkup(item)).join('');
+        
+        productGrid.insertAdjacentHTML('beforeend', finalGeneratedHtml);
+        currentIndex += nextSlice.length;
+
+        // Instantly execute animation stack layout triggers
+        setTimeout(() => {
+            document.querySelectorAll('.card-fade-in').forEach(card => {
+                card.classList.remove('opacity-0', 'translate-y-2');
+            });
+        }, 40);
+
+        // Evaluate action container bounds validation status values
+        if (currentIndex >= rawDataPayload.length) {
+            loadMoreContainer.classList.add('hidden');
+        } else {
+            loadMoreContainer.classList.remove('hidden');
+        }
+    }
+
+    // Intermediary Router View Controller handling Loading Animations
+    function handleLoadMoreClick() {
+        loadMoreBtn.disabled = true;
+        loadMoreBtn.classList.add('opacity-75', 'cursor-not-allowed');
+        btnText.innerText = "Loading...";
+        btnIcon.innerHTML = `<i class="fa-solid fa-spinner animate-spin text-xs"></i>`;
+
+        // Wait precisely 650ms to render the micro-task updates smooth simulation
+        setTimeout(() => {
+            appendNextBatchOfCards();
+
+            loadMoreBtn.disabled = false;
+            loadMoreBtn.classList.remove('opacity-75', 'cursor-not-allowed');
+            btnText.innerText = "Load More";
+            btnIcon.innerHTML = `<i class="fa-solid fa-chevron-down text-[9px]"></i>`;
+        }, 650);
+    }
+
+    // Shopping Cart LocalStorage Array Middleware Core Integration Injection
+    function addToCart(id, title, price, img) {
+        let cart = JSON.parse(localStorage.getItem('cart')) || [];
+        const targetedItem = cart.find(item => item.id === id);
+
+        if (targetedItem) {
+            targetedItem.quantity += 1;
+            Swal.fire({
+                title: 'Quantity Updated!',
+                text: `product has already in cart so updated quantity`,
+                icon: 'info',
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 2500,
+                timerProgressBar: true
+            });
+        } else {
+            cart.push({ id, title, regularPrice: parseFloat(price), img, quantity: 1 });
+              Swal.fire({
+                title: 'Success!',
+                text: `product has been added to your shopping cart.`,
+                icon: 'success',
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 2500,
+                timerProgressBar: true
+            });
+        }
+
+        localStorage.setItem('cart', JSON.stringify(cart));
+        window.dispatchEvent(new CustomEvent('cartUpdated'));
+
+        
+    }
+
+    // Page Lifecycle initialization loader triggers
+    window.addEventListener('DOMContentLoaded', () => {
+        appendNextBatchOfCards();
+    });
+</script>
+
+<%- include('partials/footer') %>

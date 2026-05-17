@@ -11,22 +11,47 @@
             <a href="/shop" class="text-sm font-bold uppercase tracking-widest border-b-2 border-red-600 pb-1 hover:text-red-600 transition-colors">View All Collection</a>
         </div>
 
+        <!-- Product Grid Container -->
         <div id="product-grid" class="grid grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-12">
-            </div>
+            <!-- Products will be appended here via JavaScript -->
+        </div>
+
+        <!-- Load More Button Container -->
+        <div id="load-more-container" class="mt-16 flex justify-center hidden">
+            <button id="load-more-btn" onclick="handleLoadMore()" class="bg-black hover:bg-red-600 text-white text-xs font-bold uppercase tracking-widest py-4 px-10 rounded-full transition-all duration-300 shadow-md hover:shadow-lg flex items-center justify-center gap-2 cursor-pointer min-w-[200px]">
+                <span id="btn-text">Load More Products</span>
+                <span id="btn-icon"><i class="fa-solid fa-chevron-down text-[10px]"></i></span>
+            </button>
+        </div>
     </div>
 </section>
 
 <script>
-    const products = <%- JSON.stringify(posts) %>;
-    const productGrid = document.getElementById('product-grid');
+    // =========================================================================
+    // ⚙️ CONFIGURATION ZONE: CHNAGE THIS VALUE TO CONTROL LOAD LIMITS
+    // =========================================================================
+    const productsPerPage = 10; // 👈 Ekhane 10, 20, 25 ba jekono number bosailei auto sob control hobe
+    // =========================================================================
 
-    productGrid.innerHTML = products.map(product => {
-        // Price logic handler (Discount thakle discountPrice hobe active price)
+    // Server handling data payload
+    const allProducts = <%- JSON.stringify(posts) %>;
+    const productGrid = document.getElementById('product-grid');
+    const loadMoreContainer = document.getElementById('load-more-container');
+    const loadMoreBtn = document.getElementById('load-more-btn');
+    const btnText = document.getElementById('btn-text');
+    const btnIcon = document.getElementById('btn-icon');
+
+    // Dynamic state pointer tracking runtime indicators
+    let currentIndex = 0;
+
+    // Core Template String Builder for Product Cards
+    function createProductCardMarkup(product) {
         const hasDiscount = product.isDiscount === true || product.isDiscount === 'true';
         const displayPrice = hasDiscount ? product.discountPrice : product.regularPrice;
+        const sanitizedTitle = product.title.replace(/'/g, "\\'");
 
         return `
-            <div class="group relative">
+            <div class="group relative opacity-0 translate-y-4 transition-all duration-500 ease-out product-card-fade">
                 <div class="relative aspect-[3/4] overflow-hidden bg-gray-50 rounded-2xl border border-gray-100">
                     <img src="${product.imgUrl}" alt="${product.title}" 
                          class="w-full h-full object-cover transition-transform duration-1000 ease-out group-hover:scale-110">
@@ -53,8 +78,8 @@
                         </div>
 
                         <div class="absolute bottom-0 left-0 right-0 p-4 translate-y-full group-hover:translate-y-0 transition-transform duration-500">
-                            <button onclick="addToCart('${product._id}', '${product.title.replace(/'/g, "\\'")}', '${displayPrice}', '${product.imgUrl}')" 
-                                    class="w-full bg-gray-900 hover:bg-red-600 text-white py-4 rounded-xl text-xs font-bold uppercase tracking-widest shadow-2xl transition-all duration-300 flex items-center justify-center gap-2">
+                            <button onclick="addToCart('${product._id}', '${sanitizedTitle}', '${displayPrice}', '${product.imgUrl}')" 
+                                    class="w-full bg-gray-900 hover:bg-red-600 text-white py-4 rounded-xl text-xs font-bold uppercase tracking-widest shadow-2xl transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer">
                                 <i class="fa-solid fa-cart-plus"></i>
                                 Add to Cart
                             </button>
@@ -88,27 +113,94 @@
                 </div>
             </div>
         `;
-    }).join('');
+    }
 
-    // Fixed Cart Functionality
+    // Intermediary controller to handle loading animation states
+    function handleLoadMore() {
+        // Disable button and set Loading states
+        loadMoreBtn.disabled = true;
+        loadMoreBtn.classList.add('opacity-80', 'cursor-not-allowed');
+        btnText.innerText = "Loading Products...";
+        btnIcon.innerHTML = `<i class="fa-solid fa-spinner animate-spin text-sm"></i>`;
+
+        // Wrap deployment logic inside a smooth 800ms transition delay simulator
+        setTimeout(() => {
+            loadNextBatch();
+
+            // Reset button default values after execution
+            loadMoreBtn.disabled = false;
+            loadMoreBtn.classList.remove('opacity-80', 'cursor-not-allowed');
+            btnText.innerText = "Load More Products";
+            btnIcon.innerHTML = `<i class="fa-solid fa-chevron-down text-[10px]"></i>`;
+            
+            // Check structural layout bounds to drop element out if maximum scale index hit
+            if (currentIndex >= allProducts.length) {
+                loadMoreContainer.classList.add('hidden');
+            }
+        }, 800);
+    }
+
+    // Dynamic slicer running allocations using configurations parameters
+    function loadNextBatch() {
+        const nextBatch = allProducts.slice(currentIndex, currentIndex + productsPerPage);
+        const htmlMarkup = nextBatch.map(product => createProductCardMarkup(product)).join('');
+        
+        productGrid.insertAdjacentHTML('beforeend', htmlMarkup);
+        currentIndex += nextBatch.length;
+
+        // Microtask animation framework mapping cards sequence transitions
+        setTimeout(() => {
+            document.querySelectorAll('.product-card-fade').forEach(card => {
+                card.classList.remove('opacity-0', 'translate-y-4');
+            });
+        }, 50);
+
+        if (currentIndex >= allProducts.length) {
+            loadMoreContainer.classList.add('hidden');
+        } else {
+            loadMoreContainer.classList.remove('hidden');
+        }
+    }
+
+    // Shopping Cart LocalStorage Handlers
     function addToCart(id, title, regularPrice, img) {
         let cart = JSON.parse(localStorage.getItem('cart')) || [];
         const existingItem = cart.find(item => item.id === id);
 
         if (existingItem) {
             existingItem.quantity += 1;
+            Swal.fire({
+                title: 'Quantity Updated!',
+                text: `Product is already in cart, so updated quantity.`,
+                icon: 'info',
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 2500,
+                timerProgressBar: true
+            });
         } else {
-            // Cart page context-er shathe key match kora holo: regularPrice
             cart.push({ id, title, regularPrice, img, quantity: 1 });
+            Swal.fire({
+                title: 'Success!',
+                text: `Product has been added to your shopping cart.`,
+                icon: 'success',
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 2500,
+                timerProgressBar: true
+            });
         }
 
         localStorage.setItem('cart', JSON.stringify(cart));
         window.dispatchEvent(new CustomEvent('cartUpdated'));
-        
-       
     }
 
+    // App bootstrapping runtime lifecycle
     window.onload = () => {
+        loadNextBatch();
+
         const countElement = document.getElementById('cart-count');
         if (countElement) {
             const cart = JSON.parse(localStorage.getItem('cart')) || [];

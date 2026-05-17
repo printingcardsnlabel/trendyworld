@@ -102,18 +102,33 @@ router.get('/category/:catName', async function (req, res, next) {
 
 
 
-router.get('/add', function (req, res, next) {
 
-    res.render('add');
-});
 // Cart Page Route
 router.get('/cart', (req, res) => {
     res.render('cart', { title: 'Your Shopping Cart' });
 });
 
-router.post('/add', async function (req, res) {
+
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
+
+const isAdmin = (req, res, next) => {
+    // সেশনে যদি adminVerified ট্রু থাকে, তবেই পরের পেজে যাওয়ার অনুমতি পাবে
+    if (req.session && req.session.adminVerified) {
+        return next();
+    } else {
+        // ভেরিফাইড না হলে লগইন পেজে রিডাইরেক্ট করবে
+        res.redirect('/admin/login');
+    }
+};
+router.get('/add',isAdmin, function (req, res, next) {
+
+    res.render('add');
+});
+
+
+router.post('/add',isAdmin, async function (req, res) {
     // Database connection (ensure it's connected)
-    await connectDB();
+  connectDB();
 
     try {
         const {
@@ -168,19 +183,33 @@ router.post('/add', async function (req, res) {
 
 
 
-
-
-router.get('/admin', async (req, res) => {
+router.get('/admin',isAdmin, async (req, res) => {
     try {
-        const products = await Post.find().sort({ createdAt: -1 }); // নতুনগুলো আগে দেখাবে
-        res.render('admin/dashboard', { products });
+        // ১. URL query string theke search string collect kora (ex: /admin?search=polo)
+        const searchQuery = req.query.search || '';
+        let query = {};
+
+        // ২. Jodi search box-e kichu lekha thake, tobe regular expression (case-insensitive) diye check kora
+        if (searchQuery) {
+            query.title = { $regex: searchQuery, $options: 'i' };
+        }
+
+        // ৩. Search filter dynamic conditionally apply kore sorted data DB theke khuje ana
+        const products = await Post.find(query).sort({ createdAt: -1 }).lean();
+
+        // 📋 render engine parsing standard target dashboard index view
+        res.render('admin/dashboard', { 
+            products: products, 
+            searchQuery: searchQuery // EJS template dynamic checking logic values mapping framework
+        });
     } catch (error) {
+        console.error("Admin Dashboard Search Loading Error:", error.message);
         res.status(500).send("Admin Error");
     }
 });
 
 // Product Delete Route
-router.get('/admin/delete/:id', async (req, res) => {
+router.get('/admin/delete/:id',isAdmin, async (req, res) => {
     try {
         await Post.findByIdAndDelete(req.params.id);
         res.redirect('/admin');
@@ -237,7 +266,7 @@ router.get('/order-success/:id', async (req, res) => {
 
 
 
-router.get('/admin/orders', async (req, res) => {
+router.get('/admin/orders',isAdmin, async (req, res) => {
     try {
         // নতুন অর্ডারগুলো সবার আগে দেখাবে (sort by createdAt)
         const orders = await Order.find();
@@ -250,7 +279,7 @@ router.get('/admin/orders', async (req, res) => {
 
 
 
-router.get('/admin/orders/delete/:id', async (req, res) => {
+router.get('/admin/orders/delete/:id',isAdmin, async (req, res) => {
     try {
         await Order.findByIdAndDelete(req.params.id);
         res.redirect('/admin/orders');
@@ -262,7 +291,7 @@ router.get('/admin/orders/delete/:id', async (req, res) => {
 
 
 // Express Backend Router Node Config
-router.get('/admin/orders/status/:id', async (req, res) => {
+router.get('/admin/orders/status/:id',isAdmin, async (req, res) => {
     try {
         const targetId = req.params.id;
         const targetStatus = req.query.status; // 'Confirmed', 'Shipped', 'Delivered'
@@ -322,6 +351,188 @@ router.get('/track-order', async (req, res) => {
         });
     }
 });
+
+
+
+router.get('/search', async (req, res) => {
+    connectDB();
+    try {
+        // Safe string query inputs handling
+        const searchQuery = typeof req.query.q === 'string' ? req.query.q.trim() : ''; 
+        const selectedCategory = typeof req.query.category === 'string' ? req.query.category.trim() : '';
+        
+        let queryFilter = {};
+
+        // ১. Title field matching dynamically
+        if (searchQuery) {
+            // Special string regex escape filter (Injection prevention)
+            const escapedSearchQuery = searchQuery.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+            queryFilter.title = { $regex: escapedSearchQuery, $options: 'i' }; 
+        }
+
+        // ২. Category matching logic based on dropdown select
+        if (selectedCategory && selectedCategory !== 'all') {
+            queryFilter.category = selectedCategory;
+        }
+
+        // Parallel processing optimized using .lean() matching postSchema fields
+        const [searchResults, allCategories] = await Promise.all([
+            Post.find(queryFilter).sort({ createdAt: -1 }).lean(), // 👈 Model name changed to Post
+            Post.distinct('category') // 👈 Dynamic extraction of unique categories
+        ]);
+
+        // Clean categories list checking empty entries
+        const sanitizedCategories = allCategories.filter(cat => cat && typeof cat === 'string');
+
+        // Render variables response dataset directly injecting into view engine
+        res.render('search', {
+            posts: searchResults || [],
+            categories: sanitizedCategories || [],
+            currentQuery: searchQuery,
+            currentCategory: selectedCategory || 'all'
+        });
+
+    } catch (error) {
+        // Logging database error traces inside execution shell
+        console.error("CRITICAL RUNTIME ERROR IN SEARCH ROUTER:", error.message);
+        
+        // Anti-crash safety rendering fallbacks safely
+        res.status(500).render('search', {
+            posts: [],
+            categories: [],
+            currentQuery: '',
+            currentCategory: 'all',
+            errorMessage: 'Database optimization error. Please refresh the web browser.'
+        });
+    }
+});
+
+
+
+
+router.get('/edit/:id',isAdmin, async (req, res) => {
+    try {
+        const productId = req.params.id;
+        
+        // Target product-ti database theke khuje ber kora
+        const targetProduct = await Post.findById(productId).lean();
+
+        if (!targetProduct) {
+            return res.status(404).send("Product khuje paoya jayni!");
+        }
+
+        // Dropdown list ta standard rakha holo
+        const categories = ["Shirt", "T-Shirt", "Drop Shoulder", "Polo T-Shirt", "Jerssy", "Punjabi", "Jeans Pants", "Gabardine Pants"];
+
+        // views/edit.ejs file render kora hocche data shohho
+        res.render('edit', { 
+            product: targetProduct,
+            categories: categories 
+        });
+    } catch (error) {
+        console.error("Edit page load error:", error.message);
+        res.status(500).send("Internal Server Error");
+    }
+});
+
+router.post('/edit/:id',isAdmin, async (req, res) => {
+    try {
+        const productId = req.params.id;
+        
+        // 1. Database theke prothome product-er borthoman object-ti ani
+        const existingProduct = await Post.findById(productId);
+        if (!existingProduct) return res.status(404).send("Product khuje paoya jayni!");
+
+        // Form theke asha raw data request body theke nilam
+        const formData = req.body;
+        let updateFields = {};
+
+        // 2. 🌟 AUTOMATED LOOP CHECK: Pura form automatic check hobe
+        for (let key in formData) {
+            let formValue = formData[key];
+
+            // String gulor bhetor jodi bhat_তি space thake sheta kete clean kori
+            if (typeof formValue === 'string') formValue = formValue.trim();
+
+            // Boolean Toggles Handler (isDiscount, isNewArrival, isLimited hole true/false-e convert hobe)
+            if (formValue === 'true' || formValue === 'false') {
+                formValue = (formValue === 'true');
+            }
+
+            // Price / Numbers Handler (regularPrice ba discountPrice hole sonkhya-te convert hobe)
+            if (key === 'regularPrice' || key === 'discountPrice') {
+                formValue = formValue ? Number(formValue) : null;
+            }
+
+            // 🎯 Main Logic: Form-er data jodi Database-er data theke alada hoy, shudhu shetai add hobe
+            if (formValue !== existingProduct[key]) {
+                updateFields[key] = formValue;
+            }
+        }
+
+        // 3. Discount off thakle database theke discountPrice null kore deya-r filter
+        if (formData.isDiscount !== 'true' && existingProduct.discountPrice !== null) {
+            updateFields.discountPrice = null;
+        }
+
+        // 4. Kono data change na hole alada kore database hit korar dorkar nai
+        if (Object.keys(updateFields).length === 0) {
+            console.log("Kono data change kora hoyni!");
+            return res.redirect(`/product/${productId}`);
+        }
+
+        // 5. MongoDB `$set` operator automatic shudhu changed fields gulo database-e save korbe
+        await Post.findByIdAndUpdate(productId, { $set: updateFields }, { new: true });
+
+        console.log("Auto-Dynamic system e eii data gulo updated hoyeche:", updateFields);
+        res.redirect(`/product/${productId}`);
+
+    } catch (error) {
+        console.error("Auto update error:", error.message);
+        res.status(500).send("Database update processing fail!");
+    }
+});
+
+
+
+
+
+
+
+
+
+
+
+router.get('/admin/login', (req, res) => {
+    // যদি আগে থেকেই লগইন করা থাকে, তবে সরাসরি ড্যাশবোর্ডে নিয়ে যাবে
+    if (req.session.adminVerified) {
+        return res.redirect('/admin');
+    }
+    // ইমেজে কোনো এরর মেসেজ দেখানোর জন্য ফ্ল্যাশ ভ্যালু পাঠানো (যদি থাকে)
+    res.render('admin/login', { error: null });
+});
+
+// [POST] Admin Login Verification Logic
+router.post('/admin/login', (req, res) => {
+    const { password } = req.body;
+
+    if (password === ADMIN_PASSWORD) {
+        // পাসওয়ার্ড সঠিক হলে সেশনে ফ্ল্যাগ ট্রু করে দেওয়া হচ্ছে
+        req.session.adminVerified = true;
+        res.redirect('/admin');
+    } else {
+        // পাসওয়ার্ড ভুল হলে এররসহ আবার লগইন পেজ দেখাবে
+        res.render('admin/login', { error: 'ভুল পাসওয়ার্ড! আবার চেষ্টা করুন।' });
+    }
+});
+
+// [GET] Admin Logout (সেশন ধ্বংস করার জন্য)
+router.get('/admin/logout', (req, res) => {
+    req.session.destroy(() => {
+        res.redirect('/admin/login');
+    });
+});
+
 
 
 

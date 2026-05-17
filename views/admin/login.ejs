@@ -1,0 +1,76 @@
+<%- include('../partials/headr') %>
+
+<div class="w-full min-h-screen bg-gray-950 flex items-center justify-center p-4 sm:p-6">
+    <div class="bg-white p-6 sm:p-8 rounded-2xl shadow-2xl w-full max-w-md border border-gray-100">
+        
+        <!-- Icon and Gateway Branding -->
+        <div class="text-center mb-6">
+            <div class="w-16 h-16 bg-red-50 text-red-600 rounded-2xl flex items-center justify-center text-2xl mx-auto mb-3 shadow-inner border border-red-100">
+                <i class="fa-solid fa-shield-halved animate-pulse"></i>
+            </div>
+            <h2 class="text-2xl font-black text-gray-900 uppercase tracking-tight italic">
+                Secure <span class="text-red-600">Gateway</span>
+            </h2>
+            <p class="text-[10px] text-gray-400 mt-1 uppercase tracking-widest font-bold">Authorized Personnel Only</p>
+        </div>
+
+        <!-- Dynamic Error Alert Block -->
+        <% if (error) { %>
+            <div class="mb-5 p-3 bg-red-50 border-l-4 border-red-600 rounded-r-xl text-red-700 text-xs font-bold flex items-center gap-2 animate-shake">
+                <i class="fa-solid fa-triangle-exclamation text-sm"></i>
+                <span><%= error %></span>
+            </div>
+        <% } %>
+
+        <!-- Login Form pointing to your massive obfuscated route -->
+        <form action="/admin/login" method="POST" class="space-y-5">
+            
+            <!-- Password Input Element -->
+            <div>
+                <label class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Security Token / Password</label>
+                <div class="relative">
+                    <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
+                        <i class="fa-solid fa-key text-xs"></i>
+                    </span>
+                    <input type="password" name="password" required placeholder="••••••••••••" 
+                        class="block w-full pl-10 pr-4 py-3 bg-gray-50 border-2 border-gray-100 rounded-xl focus:bg-white focus:border-red-600 outline-none transition-all text-sm font-medium tracking-widest text-gray-800">
+                </div>
+            </div>
+
+            <!-- Submit Action Dispatcher -->
+            <button type="submit" 
+                class="w-full bg-gray-900 hover:bg-red-600 text-white font-black py-3.5 rounded-xl shadow-lg transition duration-200 uppercase tracking-[0.2em] text-xs cursor-pointer flex items-center justify-center gap-2">
+                <i class="fa-solid fa-unlock-keyhole text-[10px]"></i> Verify Identity
+            </button>
+            
+        </form>
+
+        <!-- Escape Routing Divider -->
+        <div class="relative my-6">
+            <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-gray-100"></div></div>
+            <div class="relative flex justify-center text-[9px] uppercase font-bold tracking-widest"><span class="bg-white px-3 text-gray-300">Protected Node</span></div>
+        </div>
+
+        <!-- Back to Public Store Link -->
+        <div class="text-center">
+            <a href="/" class="text-[11px] font-bold text-gray-400 hover:text-gray-900 transition-colors uppercase tracking-wider inline-flex items-center gap-1">
+                <i class="fa-solid fa-arrow-left-long"></i> Return to Main Server
+            </a>
+        </div>
+
+    </div>
+</div>
+
+<!-- Extra Animations for Luxury UI Touch -->
+<style>
+    @keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        25% { transform: translateX(-4px); }
+        75% { transform: translateX(4px); }
+    }
+    .animate-shake {
+        animation: shake 0.2s ease-in-out double;
+    }
+</style>
+
+<%- include('../partials/footer') %>
